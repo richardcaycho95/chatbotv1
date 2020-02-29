@@ -11,7 +11,7 @@ app.listen((process.env.PORT || 5000), () => console.log('El servidor webhook es
 
 // Ruta de la pagina index
 app.get("/", function (req, res) {
-    res.send("Se ha desplegado el webhook para conexión de la API de Facebook");
+    res.send("Se ha desplegado el webhook para conexión de la API de Facebook, test");
 });
 
 // Facebook Webhook
