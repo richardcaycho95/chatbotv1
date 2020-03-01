@@ -2,10 +2,10 @@
   "name": "delivery-chatbot",
   "version": "1.0.0",
   "description": "Un bot integrado a Facebook Messenger usando node.js y Heroku",
-  "main": "app.js",
+  "main": "new.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js"
+    "start": "node new.js"
   },
   "author": "Juan Vizarro",
   "license": "ISC",
