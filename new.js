@@ -24,22 +24,24 @@ app.get('/webhook',(req,res)=>{
 
     const VERIFY_TOKEN='123456';
     const mode = req.query['hub.mode'];
-    const token =req.query['hub.verify_token'];
-    const challenge =req.query['hub.challenge'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
 
     if(mode && token){
-        if (mode === 'suscribe' && token === VERIFY_TOKEN) {
+        if (mode === 'subscribe' && token === VERIFY_TOKEN) {
             console.log('WEBHOOK VERIFICADO');
             res.status(200).send(challenge);    
         } else{
+            console.log(`error! mode: ${mode} and token: ${token}`);
             res.sendStatus(404);
         }
     } else{
         res.sendStatus(404);
     }
 });
+
 app.get('/',(req,res)=>{
-    res.status(200).send('main page of webhook.');
+    res.status(200).send('main page of webhook...');
 });
 
 //lanzamos el webhook
