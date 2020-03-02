@@ -235,7 +235,7 @@ function getButtons(buttons){//buttons: array que debe tener de forma obligatori
     let temp=[];
     buttons.forEach((button)=>{
         if (button.type=='web_url') {
-            format={ "type":button.type, "title":button.title, "url":button.url }
+            format={ "type":button.type, "url":button.url,"title":button.title }
         } else{
             format={ "type":button.type, "title":button.title, "payload":button.payload }
         }
