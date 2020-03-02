@@ -107,6 +107,7 @@ function handlePostback(sender_psid,received_postback){
 
     let data;
     let response;
+    let elements;
 
     console.log(`payload postback ${payload}`);
 
@@ -146,7 +147,7 @@ function handlePostback(sender_psid,received_postback){
             };
             responses.push(response);
 
-            let elements=[];
+            elements=[];
             data.map((complemento)=>{
                 let element={
                     "title":complemento.descripcion,
@@ -178,7 +179,7 @@ function handlePostback(sender_psid,received_postback){
             };
             responses.push(response);
 
-            let elements=[];
+            elements=[];
             data.map((complemento)=>{
                 let element={
                     "title":complemento.descripcion,
