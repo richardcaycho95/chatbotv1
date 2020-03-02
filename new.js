@@ -125,19 +125,79 @@ SEGUNDOS:
                 'text': `📌 ESTOS SON NUESTROS COMPLEMENTOS
 
 GASEOSAS INCA KOLA Y COCA COLA:
-✅ PERSONAL(625 ml)         S/. 1.50
-✅ GORDITA O JUMBO (625ml)  S/. 3.00
-✅ 1 LITRO                  S/. 5.00
-✅ 1 LITRO Y MEDIO          S/. 7.00`
+✅ PERSONAL 410 ml         S/. 1.50
+✅ GORDITA O JUMBO 625ml   S/. 3.00
+✅ 1 LITRO                 S/. 5.00
+✅ 1 LITRO Y MEDIO         S/. 7.00`
             };
             break;
         case 'postres':
             response={
                 'text': `📌 ESTOS SON NUESTROS POSTRES
                 
-✅ GELATINA (PURA O CON FLAN)   S/. 1.00
-✅ FLAN                         S/. 1.50
-✅ MARCIANOS DE FRUTA           S/. 1.00`
+✅ GELATINA             S/. 1.00
+✅ GELATINA CON FLAN    S/. 1.00
+✅ FLAN                 S/. 1.50
+✅ MARCIANOS DE FRUTA   S/. 1.00`
+            };
+            response = {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "list",
+                        "top_element_style": "compact",
+                        "elements": [
+                            {
+                                "title": "Classic T-Shirt Collection",
+                                "subtitle": "See all our colors",
+                                "image_url": "https://peterssendreceiveapp.ngrok.io/img/collection.png",          
+                                "buttons": [
+                                    {
+                                        "title": "View",
+                                        "type": "web_url",
+                                        "url": "https://peterssendreceiveapp.ngrok.io/collection",
+                                        "messenger_extensions": true,
+                                        "webview_height_ratio": "tall",
+                                        "fallback_url": "https://peterssendreceiveapp.ngrok.io/"            
+                                    }
+                                ]
+                            },
+                            {
+                                "title": "Classic White T-Shirt",
+                                "subtitle": "See all our colors",
+                                "default_action": 
+                                {
+                                    "type": "web_url",
+                                    "url": "https://peterssendreceiveapp.ngrok.io/view?item=100",
+                                    "messenger_extensions": false,
+                                    "webview_height_ratio": "tall"
+                                }
+                            },
+                            {
+                                "title": "Classic Blue T-Shirt",
+                                "image_url": "https://peterssendreceiveapp.ngrok.io/img/blue-t-shirt.png",
+                                "subtitle": "100% Cotton, 200% Comfortable",
+                                "default_action": {
+                                    "type": "web_url",
+                                    "url": "https://peterssendreceiveapp.ngrok.io/view?item=101",
+                                    "messenger_extensions": true,
+                                    "webview_height_ratio": "tall",
+                                    "fallback_url": "https://peterssendreceiveapp.ngrok.io/"
+                                },
+                                "buttons": [
+                                    {
+                                        "title": "Shop Now",
+                                        "type": "web_url",
+                                        "url": "https://peterssendreceiveapp.ngrok.io/shop?item=101",
+                                        "messenger_extensions": true,
+                                        "webview_height_ratio": "tall",
+                                        "fallback_url": "https://peterssendreceiveapp.ngrok.io/"            
+                                    }
+                                ]        
+                            }
+                        ]
+                    }
+                }
             };
             break;
     
