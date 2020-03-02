@@ -120,13 +120,13 @@ function handlePostback(sender_psid,received_postback){
             let entradas_text='';
             let segundos_text='';
             //formato de lista de entradas
-            entradas_text= data.entradas.map((entrada)=>{
-                return entradas_text+entrada+'\n';
+            data.entradas.map((entrada)=>{
+                entradas_text+=entrada+'\n';
             });
             entradas_text.replace(',','');
             //formato de lista de segundos
-            segundos_text= data.segundos.map((segundo)=>{
-                return segundos_text+segundo+'\n';
+            data.segundos.map((segundo)=>{
+                segundos_text+=segundo+'\n';
             });
             segundos_text.replace(',','');
             response={
