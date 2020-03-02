@@ -64,9 +64,8 @@ function handleMessage(sender_psid,received_message){
 
     if (received_message.text) {
         responses.push(getSaludo()) //creando el saludo
-        //let ddd=getBloqueInicial()
         responses.push(getBloqueInicial()) //creando bloque inicial
-        console.log(getBloqueInicial().attachment.payload.elements.buttons)
+        console.log(getBloqueInicial().attachment.payload)
     }
     callSendAPI(sender_psid,responses);
 }
@@ -201,7 +200,7 @@ function getBloqueInicial(){
         'buttons':[
             {'type':'postback','title':'VER MENÚ DEL DIA 🍛','payload':'menu_dia'},
             {'type':'postback','title':'VER COMPLEMENTOS','payload':'complementos'},
-            {'type':'postback','title':'VER POSTRES 🍰','payload':'postres'},
+            //{'type':'postback','title':'VER POSTRES 🍰','payload':'postres'},
             {'type':'web_url','url':'https://vizarro.herokuapp.com','title':'REALIZAR PEDIDO'}
         ],
         'empresa':'Restaurante Sabor Peruano',
@@ -234,7 +233,7 @@ function getEntradas(){
 function getButtons(buttons){//buttons: array que debe tener de forma obligatoria lso campos (type,title,payload)
     let temp=[];
     buttons.forEach((button)=>{
-        if (button.type=='web_url') {
+        if (button.type==='web_url') {
             format={ "type":button.type, "url":button.url,"title":button.title }
         } else{
             format={ "type":button.type, "title":button.title, "payload":button.payload }
