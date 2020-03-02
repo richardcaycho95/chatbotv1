@@ -32,7 +32,7 @@ app.post('/webhook',(req,res)=>{
         res.status(200).send('MENSAJE RECIBIDO DESDE FACEBOOK');
     } else{
         res.sendStatus(404);
-    }
+    }x
 });
 
 app.get('/webhook',(req,res)=>{
@@ -65,6 +65,7 @@ function handleMessage(sender_psid,received_message){
             'text':`Tu mensaje fue: ${received_message.text}`
         };*/
         response = {
+            'text':'Hola {{first_name}}! :)',
             "attachment":{
                 "type":"template",
                 "payload":{
