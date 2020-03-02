@@ -60,37 +60,40 @@ app.get('/webhook',(req,res)=>{
 //handles message events
 function handleMessage(sender_psid,received_message){
     let responses=[];
+    let response;
     if (received_message.text) {
-        /*response={
-            'text':`Tu mensaje fue: ${received_message.text}`
-        };*/
-        let response = {
+        let data={
+            'buttons':[
+                {'title':'VER MENÚ DEL DIA 🍛','payload':'menu_dia'},
+                {'title':'VER COMPLEMENTOS','payload':'complementos'},
+                {'title':'VER POSTRES 🍰','payload':'postres'}
+            ],
+            'empresa':'Restaurante Sabor Peruano',
+            'descripcion': 'Ahora puedes realizar tus pedidos mediante nuestro asistente virtual 🤖 de una manera facil e interactiva 😉',
+            'img_url':'https://img.mesa247.pe/archivos/inversiones-sp-sabores-peruanos-eirl/sabores-peruanos-miraflores-logo.jpg'
+        }
+        //creando botones
+        let buttons=[]
+        data.buttons.forEach((button)=>{
+            buttons.push({ "type":"postback", "title":button.title, "payload":button.payload })
+        })
+        //creando el saludo
+        response={
+            'text': 'Hola {{first_name}}! 😄'
+        }
+        responses.push(response);
+        //creando bloque inicial
+        response = {
             "attachment":{
                 "type":"template",
                 "payload":{
                     "template_type":"generic",
                     "elements":[
                         {
-                            "title":"Restaurante sabor peruano",
-                            "image_url":"https://img.mesa247.pe/archivos/inversiones-sp-sabores-peruanos-eirl/sabores-peruanos-miraflores-logo.jpg",
-                            "subtitle":"Este es un ejemplo de prueba",
-                            "buttons":[
-                                {
-                                    "type":"postback",
-                                    "title":"VER MENÚ DEL DIA",
-                                    "payload":"menu_dia"
-                                },
-                                {
-                                    "type":"postback",
-                                    "title":"VER COMPLEMENTOS",
-                                    "payload":"complementos"
-                                },
-                                {
-                                    "type":"postback",
-                                    "title":"VER POSTRES",
-                                    "payload":"postres"
-                                }              
-                            ]      
+                            "title":data.empresa,
+                            "image_url":data.img_url,
+                            "subtitle":data.descripcion,
+                            "buttons":buttons
                         }
                     ]
                 }
