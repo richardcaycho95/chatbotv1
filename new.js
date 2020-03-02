@@ -199,7 +199,7 @@ function getSaludo(){
 function getBloqueInicial(){
     let data={
         'buttons':[
-            //{'type':'web_url','title':'REALIZAR PEDIDO','url':'https://vizarro.herokuapp.com'},
+            {'type':'web_url','url':'https://vizarro.herokuapp.com','title':'REALIZAR PEDIDO'},
             {'type':'postback','title':'VER MENÚ DEL DIA 🍛','payload':'menu_dia'},
             {'type':'postback','title':'VER COMPLEMENTOS','payload':'complementos'},
             {'type':'postback','title':'VER POSTRES 🍰','payload':'postres'}
