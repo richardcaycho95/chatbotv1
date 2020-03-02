@@ -109,21 +109,21 @@ function handlePostback(sender_psid,received_postback){
             response={
                 'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY 1 DE MARZO
 
-                ENTRADAS:
-                🍜 CALDO DE GALLINA
-                🐟 CEVICHE
-                🍣 ENSALADA DE PALTA
-                
-                SEGUNDOS:
-                ✅ ESTOFADO DE POLLO CON PAPAS
-                ✅ ARROZ CON PATO
-                ✅ TALLARINES VERDES CON BISTECK`
+ENTRADAS:
+🍜 CALDO DE GALLINA
+🐟 CEVICHE
+🍣 ENSALADA DE PALTA
+
+SEGUNDOS:
+✅ ESTOFADO DE POLLO CON PAPAS
+✅ ARROZ CON PATO
+✅ TALLARINES VERDES CON BISTECK`
             };
             break;
         case 'complementos':
             response={
                 'text': `📌 ESTOS SON NUESTROS COMPLEMENTOS
-                
+
                 GASEOSAS INCA KOLA Y COCA COLA:
                 ✅ PERSONAL(625 ml)         S/. 1.50
                 ✅ GORDITA O JUMBO (625ml)  S/. 3.00
