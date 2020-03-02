@@ -157,6 +157,7 @@ function handlePostback(sender_psid,received_postback){
                     }
                   }
             }
+            responses.push(response);
             break;
         case 'complementos':
             data=[
