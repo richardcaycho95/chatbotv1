@@ -150,8 +150,8 @@ function handlePostback(sender_psid,received_postback){
             data.map((complemento)=>{
                 let element={
                     "title":complemento.descripcion,
-                    "image_url":data.img_url,
-                    "subtitle":"Precio: "+data.precio
+                    "image_url":complemento.img_url,
+                    "subtitle":"Precio: "+complemento.precio
                 };
                 elements.push(element);
             })
