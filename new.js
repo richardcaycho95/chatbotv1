@@ -72,7 +72,7 @@ function handleMessage(sender_psid,received_message){
                     "elements":[
                         {
                             "title":"Restaurante sabor peruano",
-                            "image_url":"https://petersfancybrownhats.com/company_image.png",
+                            "image_url":"https://img.mesa247.pe/archivos/inversiones-sp-sabores-peruanos-eirl/sabores-peruanos-miraflores-logo.jpg",
                             "subtitle":"Este es un ejemplo de prueba",
                             "buttons":[
                                 {
@@ -100,8 +100,51 @@ function handleMessage(sender_psid,received_message){
     callSendAPI(sender_psid,response);
 }
 //handles messaging_postback events
-function handlePostback(sender_psid,received_message){
+function handlePostback(sender_psid,received_postback){
+    let response = '';
+    const payload=received_postback.payload;
 
+    switch (payload) {
+        case 'menu_dia':
+            response={
+                'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY 1 DE MARZO
+
+                ENTRADAS:
+                🍜 CALDO DE GALLINA
+                🐟 CEVICHE
+                🍣 ENSALADA DE PALTA
+                
+                SEGUNDOS:
+                ✅ ESTOFADO DE POLLO CON PAPAS
+                ✅ ARROZ CON PATO
+                ✅ TALLARINES VERDES CON BISTECK`
+            };
+            break;
+        case 'complementos':
+            response={
+                'text': `📌 ESTOS SON NUESTROS COMPLEMENTOS
+                
+                GASEOSAS INCA KOLA Y COCA COLA:
+                ✅ PERSONAL(625 ml)         S/. 1.50
+                ✅ GORDITA O JUMBO (625ml)  S/. 3.00
+                ✅ 1 LITRO                  S/. 5.00
+                ✅ 1 LITRO Y MEDIO          S/. 7.00`
+            };
+            break;
+        case 'postres':
+            response={
+                'text': `📌 ESTOS SON NUESTROS POSTRES
+                
+                ✅ GELATINA (PURA O CON FLAN)   S/. 1.00
+                ✅ FLAN                         S/. 1.50
+                ✅ MARCIANOS DE FRUTA           S/. 1.00`
+            };
+            break;
+    
+        default:
+            break;
+    }
+    callSendAPI(sender_psid,response);
 }
 //envia mensajes de respuesta a facebook mediante la "send API"
 function callSendAPI(sender_psid,response){
