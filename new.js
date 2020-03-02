@@ -220,8 +220,7 @@ function getBloqueInicial(){
                         "title":data.empresa,
                         "image_url":data.img_url,
                         "subtitle":data.descripcion,
-                        //"buttons":buttons
-                        'buttons':[]
+                        "buttons":buttons
                     }
                 ]
             }
@@ -235,14 +234,14 @@ function getEntradas(){
 function getButtons(buttons){//buttons: array que debe tener de forma obligatoria lso campos (type,title,payload)
     let temp=[];
     buttons.forEach((button)=>{
-        if (button.type==='web_url') {
+        if (button.type=='web_url') {
             format={ "type":button.type, "title":button.title, "url":button.url }
         } else{
             format={ "type":button.type, "title":button.title, "payload":button.payload }
         }
         temp.push(format)
     })
-    return temp;
+    return JSON.stringify(temp);
 }
 function getMenuDia(){//return array: [0]=> response del menu,[1]=>response de los botones de accción; se debe leer con bucle
     data={
