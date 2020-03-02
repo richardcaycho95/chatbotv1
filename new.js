@@ -65,7 +65,6 @@ function handleMessage(sender_psid,received_message){
             'text':`Tu mensaje fue: ${received_message.text}`
         };*/
         response = {
-            'text':'Hola {{first_name}}! :)',
             "attachment":{
                 "type":"template",
                 "payload":{
@@ -109,18 +108,23 @@ function handlePostback(sender_psid,received_postback){
 
     switch (payload) {
         case 'menu_dia':
+            let data={
+                'dia': '1 DE MARZO',
+                'entradas':['🍜 CALDO DE GALLINA','🐟 CEVICHE','🍣 ENSALADA DE PALTA'],
+                'segundos':['✅ ESTOFADO DE POLLO CON PAPAS','✅ ARROZ CON PATO','✅ TALLARINES VERDES CON BISTECK'],
+            };
+            let entradas_text='';
+            let segundos_text='';
+            //formato de lista de entradas
+            entradas_text= data.entradas.map((entrada)=>{
+                return entradas_text+entrada+'\n';
+            });
+            //formato de lista de segundos
+            segundos_text= data.segundos.map((segundo)=>{
+                return segundos_text+segundo+'\n';
+            });
             response={
-                'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY 1 DE MARZO
-
-ENTRADAS:
-🍜 CALDO DE GALLINA
-🐟 CEVICHE
-🍣 ENSALADA DE PALTA
-
-SEGUNDOS:
-✅ ESTOFADO DE POLLO CON PAPAS
-✅ ARROZ CON PATO
-✅ TALLARINES VERDES CON BISTECK`
+                'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY ${data.dia} \nENTRADAS:\n${entradas_text}\nSEGUNDOS:\n${segundos_text}`
             };
             break;
         case 'complementos':
