@@ -104,12 +104,13 @@ function handleMessage(sender_psid,received_message){
 function handlePostback(sender_psid,received_postback){
     let responses = [];
     const payload=received_postback.payload;
+    let data;
 
     console.log(`payload postback ${payload}`);
 
     switch (payload) {
         case 'menu_dia':
-            let data={
+            data={
                 'dia': '1 DE MARZO',
                 'entradas':['🍜 CALDO DE GALLINA','🐟 CEVICHE','🍣 ENSALADA DE PALTA'],
                 'segundos':['✅ ESTOFADO DE POLLO CON PAPAS','✅ ARROZ CON PATO','✅ TALLARINES VERDES CON BISTECK'],
@@ -132,7 +133,7 @@ function handlePostback(sender_psid,received_postback){
             responses.push(response);
             break;
         case 'complementos':
-            let data=[
+            data=[
                 {'descripcion':'✅ PERSONAL 410 ml','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 1.50'},
                 {'descripcion':'✅ GORDITA O JUMBO 625ml','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 3.00'},
                 {'descripcion':'✅ 1 LITRO','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 5.00'},
