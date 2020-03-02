@@ -79,7 +79,7 @@ function handleMessage(sender_psid,received_message){
         })
         //creando el saludo
         response={
-            'text': 'Hola {{ first_name }}! 😄'
+            'text': 'Hola {{user_first_name}}! 😄'
         }
         responses.push(response);
         //creando bloque inicial
