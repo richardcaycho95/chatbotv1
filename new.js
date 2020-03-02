@@ -61,9 +61,41 @@ app.get('/webhook',(req,res)=>{
 function handleMessage(sender_psid,received_message){
     let response='';
     if (received_message.text) {
-        response={
+        /*response={
             'text':`Tu mensaje fue: ${received_message.text}`
-        };
+        };*/
+        response = {
+            "attachment":{
+                "type":"template",
+                "payload":{
+                    "template_type":"generic",
+                    "elements":[
+                        {
+                            "title":"Restaurante sabor peruano",
+                            "image_url":"https://petersfancybrownhats.com/company_image.png",
+                            "subtitle":"Este es un ejemplo de prueba",
+                            "buttons":[
+                                {
+                                    "type":"postback",
+                                    "title":"VER MENÚ DEL DIA",
+                                    "payload":"menu_dia"
+                                },
+                                {
+                                    "type":"postback",
+                                    "title":"VER COMPLEMENTOS",
+                                    "payload":"complementos"
+                                },
+                                {
+                                    "type":"postback",
+                                    "title":"VER POSTRES",
+                                    "payload":"postres"
+                                }              
+                            ]      
+                        }
+                    ]
+                }
+              }
+        }
     }
     callSendAPI(sender_psid,response);
 }
