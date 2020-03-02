@@ -65,6 +65,7 @@ function handleMessage(sender_psid,received_message){
     if (received_message.text) {
         responses.push(getSaludo()) //creando el saludo
         responses.push(getBloqueInicial()) //creando bloque inicial
+        console.log(responses)
     }
     callSendAPI(sender_psid,responses);
 }
