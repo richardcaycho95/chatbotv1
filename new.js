@@ -209,7 +209,7 @@ function getBloqueInicial(){
     }
     //creando botones
     let buttons=getButtons(data.buttons);
-    return {
+    let send={
         "attachment":{
             "type":"template",
             "payload":{
@@ -224,7 +224,8 @@ function getBloqueInicial(){
                 ]
             }
         }
-    }
+    };
+    return send
 }
 function getEntradas(){
     let data=[{'title':'CALDO DE GALLINA',}]
