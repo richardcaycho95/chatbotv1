@@ -32,7 +32,7 @@ app.post('/webhook',(req,res)=>{
         res.status(200).send('MENSAJE RECIBIDO DESDE FACEBOOK');
     } else{
         res.sendStatus(404);
-    }x
+    }
 });
 
 app.get('/webhook',(req,res)=>{
