@@ -120,6 +120,11 @@ function handlePostback(sender_psid,received_postback){
                 'dia': '2 DE MARZO',
                 'entradas':['🍜 CALDO DE GALLINA','🐟 CEVICHE','🍣 ENSALADA DE PALTA'],
                 'segundos':['✅ ESTOFADO DE POLLO CON PAPAS','✅ ARROZ CON PATO','✅ TALLARINES VERDES CON BISTECK'],
+                'texto_accion':'¿Qué deseas realizar?',
+                'botones_accion':[
+                    {'title':'REALIZAR PEDIDO','payload':'realizar_pedido'},
+                    {'title':'VOLVER AL MENÚ PRINCIPAL','payload':'home'}
+                ]
             };
             let entradas_text='';
             let segundos_text='';
@@ -137,6 +142,21 @@ function handlePostback(sender_psid,received_postback){
                 'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY ${data.dia} \n\nENTRADAS:\n${entradas_text}\nSEGUNDOS:\n${segundos_text}`
             };
             responses.push(response);
+            //bloque sobre acciones
+            buttons=[];
+            data.botones_accion.map((button)=>{
+                buttons.push({ "type":"postback", "title":button.title, "payload":button.payload })
+            })
+            response={
+                'attachment':{
+                    "type":"template",
+                    "payload":{
+                      "template_type":"button",
+                      "text":data.texto_accion,
+                      "buttons":buttons
+                    }
+                  }
+            }
             break;
         case 'complementos':
             data=[
