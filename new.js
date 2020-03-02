@@ -113,7 +113,7 @@ function handlePostback(sender_psid,received_postback){
     switch (payload) {
         case 'menu_dia':
             data={
-                'dia': '1 DE MARZO',
+                'dia': '2 DE MARZO',
                 'entradas':['🍜 CALDO DE GALLINA','🐟 CEVICHE','🍣 ENSALADA DE PALTA'],
                 'segundos':['✅ ESTOFADO DE POLLO CON PAPAS','✅ ARROZ CON PATO','✅ TALLARINES VERDES CON BISTECK'],
             };
@@ -142,7 +142,7 @@ function handlePostback(sender_psid,received_postback){
                 {'descripcion':'✅ 1 LITRO Y MEDIO','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 7.00'},
             ];
             response={
-                'text': `📌 ESTOS SON NUESTROS COMPLEMENTOS`
+                'text': `📌 ESTOS SON NUESTROS COMPLEMENTOS\n(desliza a la derecha para verlos :) )`
             };
             responses.push(response);
 
@@ -167,40 +167,36 @@ function handlePostback(sender_psid,received_postback){
             responses.push(response);
             break;
         case 'postres':
-            /*response={
-                'text': `📌 ESTOS SON NUESTROS POSTRES
-                
-✅ GELATINA             S/. 1.00
-✅ GELATINA CON FLAN    S/. 1.00
-✅ FLAN                 S/. 1.50
-✅ MARCIANOS DE FRUTA   S/. 1.00`
-            };*/
-            response = {
-                "attachment": {
-                    "type": "template",
-                    "payload": {
-                        "template_type": "list",
-                        "top_element_style": "compact",
-                        "elements": [
-                            {
-                                "title": "Classic Blue T-Shirt",
-                                "image_url": "https://peterssendreceiveapp.ngrok.io/img/blue-t-shirt.png",
-                                "subtitle": "100% Cotton, 200% Comfortable",
-                                "buttons": [
-                                    {
-                                        "title": "Comprar ahora",
-                                        "type": "web_url",
-                                        "url": "https://peterssendreceiveapp.ngrok.io/shop?item=101",
-                                        "messenger_extensions": true,
-                                        "webview_height_ratio": "tall",
-                                        "fallback_url": "https://peterssendreceiveapp.ngrok.io/"            
-                                    }
-                                ]        
-                            }
-                        ]
-                    }
-                }
+            data=[
+                {'descripcion':'✅ FLAN','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.50'},
+                {'descripcion':'✅ GELATINA','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.00'},
+                {'descripcion':'✅ GELATINA CON FLAN','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.00'},
+                {'descripcion':'✅ MARCIANOS','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.00'},
+            ];
+            response={
+                'text': `📌 ESTOS SON NUESTROS POSTRES\n(desliza a la derecha para verlos :) )`
             };
+            responses.push(response);
+
+            let elements=[];
+            data.map((complemento)=>{
+                let element={
+                    "title":complemento.descripcion,
+                    "image_url":complemento.img_url,
+                    "subtitle":"Precio: "+complemento.precio
+                };
+                elements.push(element);
+            })
+            response = {
+                "attachment":{
+                    "type":"template",
+                    "payload":{
+                        "template_type":"generic",
+                        "elements":elements
+                    }
+                  }
+            }
+            responses.push(response);
             break;
         default:
             break;
