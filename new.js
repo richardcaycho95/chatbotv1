@@ -151,7 +151,7 @@ function handlePostback(sender_psid,received_postback){
                 let element={
                     "title":complemento.descripcion,
                     "image_url":data.img_url,
-                    "subtitle":"Precio: "+data.precios
+                    "subtitle":"Precio: "+data.precio
                 };
                 elements.push(element);
             })
