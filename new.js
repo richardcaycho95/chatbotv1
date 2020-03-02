@@ -64,9 +64,9 @@ function handleMessage(sender_psid,received_message){
 
     if (received_message.text) {
         responses.push(getSaludo()) //creando el saludo
-        let ddd=getBloqueInicial()
+        //let ddd=getBloqueInicial()
         responses.push(getBloqueInicial()) //creando bloque inicial
-        console.log(ddd.attachment.payload)
+        console.log(responses)
     }
     callSendAPI(sender_psid,responses);
 }
@@ -87,7 +87,7 @@ function handlePostback(sender_psid,received_postback){
             break;
         case 'realizar_pedido':
             //primero se pregunta que entrada desea
-            responses.push(getEntradas())
+            //responses.push(getEntradas())
             break;
         case 'menu_dia':
             //creando mensaje donde se detalla el menú del dia y se pregunta sobre la acción a realizar
@@ -199,7 +199,7 @@ function getSaludo(){
 function getBloqueInicial(){
     let data={
         'buttons':[
-            {'type':'web_url','title':'REALIZAR PEDIDO','url':'https://vizarro.herokuapp.com'},
+            //{'type':'web_url','title':'REALIZAR PEDIDO','url':'https://vizarro.herokuapp.com'},
             {'type':'postback','title':'VER MENÚ DEL DIA 🍛','payload':'menu_dia'},
             {'type':'postback','title':'VER COMPLEMENTOS','payload':'complementos'},
             {'type':'postback','title':'VER POSTRES 🍰','payload':'postres'}
