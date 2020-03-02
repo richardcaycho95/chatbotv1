@@ -82,7 +82,7 @@ function handlePostback(sender_psid,received_postback){
     //parametros del payload
     switch (payload) {
         case 'home':
-            responses.push(getBloqueInicial)
+            responses.push(getBloqueInicial())
             break;
         case 'realizar_pedido':
             //primero se pregunta que entrada desea
@@ -197,18 +197,30 @@ function getSaludo(){
 }
 function getBloqueInicial(){
     let data={
-        'buttons':[
-            {'type':'postback','title':'VER MENÚ DEL DIA 🍛','payload':'menu_dia'},
-            {'type':'postback','title':'VER COMPLEMENTOS','payload':'complementos'},
-            //{'type':'postback','title':'VER POSTRES 🍰','payload':'postres'},
-            {'type':'web_url','url':'https://vizarro.herokuapp.com','title':'REALIZAR PEDIDO'}
-        ],
-        'empresa':'Restaurante Sabor Peruano',
-        'descripcion': 'Ahora puedes realizar tus pedidos mediante nuestro asistente virtual 🤖 😉',
-        'img_url':'https://img.mesa247.pe/archivos/inversiones-sp-sabores-peruanos-eirl/sabores-peruanos-miraflores-logo.jpg'
+        'block1':{
+            'buttons':[
+                {'type':'web_url','url':'https://vizarro.herokuapp.com','title':'REALIZAR PEDIDO 🛒'},
+                {'type':'postback','title':'VER MENÚ DEL DIA 🍛','payload':'menu_dia'}
+                //{'type':'postback','title':'VER GASEOSAS','payload':'complementos'},
+                //{'type':'postback','title':'VER POSTRES 🍰','payload':'postres'},   
+            ],
+            'empresa':'Restaurante Sabor Peruano',
+            'descripcion': 'Ahora puedes realizar tus pedidos mediante nuestro asistente virtual 🤖 😉',
+            'img_url':'https://img.mesa247.pe/archivos/inversiones-sp-sabores-peruanos-eirl/sabores-peruanos-miraflores-logo.jpg'
+        },
+        'block2':{
+            'buttons':[
+                {'type':'postback','title':'VER GASEOSAS','payload':'complementos'},
+                {'type':'postback','title':'VER POSTRES 🍰','payload':'postres'},   
+            ],
+            'empresa':'Restaurante Sabor Peruano',
+            'descripcion': 'Tambien puedes pedir un postre o gaseosa o añadirla a tu pedido 😊',
+            'img_url':'https://img.mesa247.pe/archivos/inversiones-sp-sabores-peruanos-eirl/sabores-peruanos-miraflores-logo.jpg'
+        }
     }
     //creando botones
-    let buttons=getButtons(data.buttons);
+    let buttons_block1=getButtons(data.block1.buttons);
+    let buttons_block2=getButtons(data.block2.buttons);
     let send={
         "attachment":{
             "type":"template",
@@ -216,10 +228,16 @@ function getBloqueInicial(){
                 "template_type":"generic",
                 "elements":[
                     {
-                        "title":data.empresa,
-                        "image_url":data.img_url,
-                        "subtitle":data.descripcion,
-                        "buttons":buttons
+                        "title":data.block1.empresa,
+                        "image_url":data.block1.img_url,
+                        "subtitle":data.block1.descripcion,
+                        "buttons":buttons_block1
+                    },
+                    {
+                        "title":data.block2.empresa,
+                        "image_url":data.block2.img_url,
+                        "subtitle":data.block2.descripcion,
+                        "buttons":buttons_block2
                     }
                 ]
             }
