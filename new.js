@@ -220,7 +220,8 @@ function getBloqueInicial(){
                         "title":data.empresa,
                         "image_url":data.img_url,
                         "subtitle":data.descripcion,
-                        "buttons":buttons
+                        //"buttons":buttons
+                        'buttons':[]
                     }
                 ]
             }
