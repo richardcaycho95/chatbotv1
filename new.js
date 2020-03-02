@@ -122,8 +122,8 @@ function handlePostback(sender_psid,received_postback){
                 'segundos':['✅ ESTOFADO DE POLLO CON PAPAS','✅ ARROZ CON PATO','✅ TALLARINES VERDES CON BISTECK'],
                 'texto_accion':'¿Qué deseas realizar?',
                 'botones_accion':[
-                    {'title':'REALIZAR PEDIDO','payload':'realizar_pedido'},
-                    {'title':'VOLVER AL MENÚ PRINCIPAL','payload':'home'}
+                    {'title':'REALIZAR PEDIDO 🏷','payload':'realizar_pedido'},
+                    {'title':'VOLVER AL MENÚ PRINCIPAL 🏠','payload':'home'}
                 ]
             };
             let entradas_text='';
