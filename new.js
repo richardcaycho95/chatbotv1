@@ -69,7 +69,7 @@ function handleMessage(sender_psid,received_message){
                 {'title':'VER POSTRES 🍰','payload':'postres'}
             ],
             'empresa':'Restaurante Sabor Peruano',
-            'descripcion': 'Ahora puedes realizar tus pedidos mediante nuestro asistente virtual 🤖 de una manera facil e interactiva 😉',
+            'descripcion': 'Ahora puedes realizar tus pedidos mediante nuestro asistente virtual 🤖 😉',
             'img_url':'https://img.mesa247.pe/archivos/inversiones-sp-sabores-peruanos-eirl/sabores-peruanos-miraflores-logo.jpg'
         }
         //creando botones
@@ -79,7 +79,7 @@ function handleMessage(sender_psid,received_message){
         })
         //creando el saludo
         response={
-            'text': 'Hola {{first_name}}! 😄'
+            'text': 'Hola {{ first_name }}! 😄'
         }
         responses.push(response);
         //creando bloque inicial
