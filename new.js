@@ -132,14 +132,14 @@ GASEOSAS INCA KOLA Y COCA COLA:
             };
             break;
         case 'postres':
-            response={
+            /*response={
                 'text': `📌 ESTOS SON NUESTROS POSTRES
                 
 ✅ GELATINA             S/. 1.00
 ✅ GELATINA CON FLAN    S/. 1.00
 ✅ FLAN                 S/. 1.50
 ✅ MARCIANOS DE FRUTA   S/. 1.00`
-            };
+            };*/
             response = {
                 "attachment": {
                     "type": "template",
