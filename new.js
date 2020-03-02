@@ -104,7 +104,9 @@ function handleMessage(sender_psid,received_message){
 function handlePostback(sender_psid,received_postback){
     let responses = [];
     const payload=received_postback.payload;
+
     let data;
+    let response;
 
     console.log(`payload postback ${payload}`);
 
@@ -127,7 +129,7 @@ function handlePostback(sender_psid,received_postback){
                 return segundos_text+segundo+'\n';
             });
             segundos_text.replace(',','');
-            let response={
+            response={
                 'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY ${data.dia} \n\nENTRADAS:\n${entradas_text}\nSEGUNDOS:\n${segundos_text}`
             };
             responses.push(response);
@@ -139,7 +141,7 @@ function handlePostback(sender_psid,received_postback){
                 {'descripcion':'✅ 1 LITRO','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 5.00'},
                 {'descripcion':'✅ 1 LITRO Y MEDIO','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 7.00'},
             ];
-            let response={
+            response={
                 'text': `📌 ESTOS SON NUESTROS COMPLEMENTOS`
             };
             responses.push(response);
