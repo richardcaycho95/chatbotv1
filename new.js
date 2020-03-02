@@ -59,12 +59,12 @@ app.get('/webhook',(req,res)=>{
 
 //handles message events
 function handleMessage(sender_psid,received_message){
-    let response='';
+    let responses=[];
     if (received_message.text) {
         /*response={
             'text':`Tu mensaje fue: ${received_message.text}`
         };*/
-        response = {
+        let response = {
             "attachment":{
                 "type":"template",
                 "payload":{
@@ -96,12 +96,13 @@ function handleMessage(sender_psid,received_message){
                 }
               }
         }
+        responses.push(response);
     }
-    callSendAPI(sender_psid,response);
+    callSendAPI(sender_psid,responses);
 }
 //handles messaging_postback events
 function handlePostback(sender_psid,received_postback){
-    let response = '';
+    let responses = [];
     const payload=received_postback.payload;
 
     console.log(`payload postback ${payload}`);
@@ -119,24 +120,48 @@ function handlePostback(sender_psid,received_postback){
             entradas_text= data.entradas.map((entrada)=>{
                 return entradas_text+entrada+'\n';
             });
+            entradas_text.replace(',','');
             //formato de lista de segundos
             segundos_text= data.segundos.map((segundo)=>{
                 return segundos_text+segundo+'\n';
             });
-            response={
-                'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY ${data.dia} \nENTRADAS:\n${entradas_text}\nSEGUNDOS:\n${segundos_text}`
+            segundos_text.replace(',','');
+            let response={
+                'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY ${data.dia} \n\nENTRADAS:\n${entradas_text}\nSEGUNDOS:\n${segundos_text}`
             };
+            responses.push(response);
             break;
         case 'complementos':
-            response={
-                'text': `📌 ESTOS SON NUESTROS COMPLEMENTOS
-
-GASEOSAS INCA KOLA Y COCA COLA:
-✅ PERSONAL 410 ml         S/. 1.50
-✅ GORDITA O JUMBO 625ml   S/. 3.00
-✅ 1 LITRO                 S/. 5.00
-✅ 1 LITRO Y MEDIO         S/. 7.00`
+            let data=[
+                {'descripcion':'✅ PERSONAL 410 ml','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 1.50'},
+                {'descripcion':'✅ GORDITA O JUMBO 625ml','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 3.00'},
+                {'descripcion':'✅ 1 LITRO','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 5.00'},
+                {'descripcion':'✅ 1 LITRO Y MEDIO','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 7.00'},
+            ];
+            let response={
+                'text': `📌 ESTOS SON NUESTROS COMPLEMENTOS`
             };
+            responses.push(response);
+
+            let elements=[];
+            data.map((complemento)=>{
+                let element={
+                    "title":complemento.descripcion,
+                    "image_url":data.img_url,
+                    "subtitle":"Precio: "+data.precios
+                };
+                elements.push(element);
+            })
+            response = {
+                "attachment":{
+                    "type":"template",
+                    "payload":{
+                        "template_type":"generic",
+                        "elements":elements
+                    }
+                  }
+            }
+            responses.push(response);
             break;
         case 'postres':
             /*response={
@@ -177,30 +202,32 @@ GASEOSAS INCA KOLA Y COCA COLA:
         default:
             break;
     }
-    callSendAPI(sender_psid,response);
+    callSendAPI(sender_psid,responses);
 }
 //envia mensajes de respuesta a facebook mediante la "send API"
-function callSendAPI(sender_psid,response){
-    const requestBody = {
-        'recipient':{
-            'id': sender_psid
-        },
-        'message': response
-    };
-
-    request({
-        'uri': 'https://graph.facebook.com/v6.0/me/messages',
-        'qs':{
-            'access_token': process.env.PAGE_ACCESS_TOKEN
-        },
-        'method': 'POST',
-        'json': requestBody
-    },(err,res,body)=>{
-        if (!err) {
-            console.log('Mensaje respondido con el bot');
-        } else{
-            console.error('No se puede responder');
-        }
+function callSendAPI(sender_psid,responses){ //response es un array con los mensajes que se enviará
+    responses.forEach((response)=>{
+        const requestBody = {
+            'recipient':{
+                'id': sender_psid
+            },
+            'message': response
+        };
+    
+        request({
+            'uri': 'https://graph.facebook.com/v6.0/me/messages',
+            'qs':{
+                'access_token': process.env.PAGE_ACCESS_TOKEN
+            },
+            'method': 'POST',
+            'json': requestBody
+        },(err,res,body)=>{
+            if (!err) {
+                console.log('Mensaje respondido con el bot');
+            } else{
+                console.error('No se puede responder');
+            }
+        })
     })
 }
 //end
