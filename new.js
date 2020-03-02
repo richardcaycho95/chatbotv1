@@ -124,20 +124,20 @@ SEGUNDOS:
             response={
                 'text': `📌 ESTOS SON NUESTROS COMPLEMENTOS
 
-                GASEOSAS INCA KOLA Y COCA COLA:
-                ✅ PERSONAL(625 ml)         S/. 1.50
-                ✅ GORDITA O JUMBO (625ml)  S/. 3.00
-                ✅ 1 LITRO                  S/. 5.00
-                ✅ 1 LITRO Y MEDIO          S/. 7.00`
+GASEOSAS INCA KOLA Y COCA COLA:
+✅ PERSONAL(625 ml)         S/. 1.50
+✅ GORDITA O JUMBO (625ml)  S/. 3.00
+✅ 1 LITRO                  S/. 5.00
+✅ 1 LITRO Y MEDIO          S/. 7.00`
             };
             break;
         case 'postres':
             response={
                 'text': `📌 ESTOS SON NUESTROS POSTRES
                 
-                ✅ GELATINA (PURA O CON FLAN)   S/. 1.00
-                ✅ FLAN                         S/. 1.50
-                ✅ MARCIANOS DE FRUTA           S/. 1.00`
+✅ GELATINA (PURA O CON FLAN)   S/. 1.00
+✅ FLAN                         S/. 1.50
+✅ MARCIANOS DE FRUTA           S/. 1.00`
             };
             break;
     
