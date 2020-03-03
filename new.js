@@ -6,6 +6,10 @@ const request = require('request');
 const SUSBCRIBE_MODE='subscribe';
 const PAGE_ACCESS_TOKEN=process.env.PAGE_ACCESS_TOKEN;
 
+//constantes para la preferencia{menu,postre,gaseosa}
+const MENU='menu';
+const GASEOSA='gaseosa';
+const POSTRE='postre';
 
 const app = express().use(bodyParser.json());
 
@@ -89,47 +93,25 @@ function handlePostback(sender_psid,received_postback){
             //responses.push(getEntradas())
             break;
         case 'menu_dia':
-            //creando mensaje donde se detalla el menú del dia y se pregunta sobre la acción a realizar
+            //mensaje donde se detalla el menú del dia y se pregunta sobre la acción a realizar
             //se debe recorrer el bucle para leer los formatos json
-            let temp=getMenuDia();
-            temp.forEach((response)=>{
+            getMenuDia().map((response)=>{
                 responses.push(response)
             })
             break;
         case 'complementos':
-            temp_complementos=getComplementos();
-            temp_complementos.forEach((response)=>{
+            //mensaje donde se muestra las gaseosas y se llama a la accción
+            //se debe recorrer el bucle para leer los formatos json
+            getComplementos().map((response)=>{
                 responses.push(response)
             })
             break;
         case 'postres':
-            data=[
-                {'descripcion':'✅ FLAN','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.50'},
-                {'descripcion':'✅ GELATINA','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.00'},
-                {'descripcion':'✅ GELATINA CON FLAN','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.00'},
-                {'descripcion':'✅ MARCIANOS','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.00'},
-            ];
-            responses.push({'text': `📌 ESTOS SON NUESTROS POSTRES\n(desliza a la derecha para verlos :) )`});
-
-            elements=[];
-            data.map((complemento)=>{
-                let element={
-                    "title":complemento.descripcion,
-                    "image_url":complemento.img_url,
-                    "subtitle":"Precio: "+complemento.precio
-                };
-                elements.push(element);
+            //mensaje donde se muestra los postres y se llama a la accción
+            //se debe recorrer el bucle para leer los formatos json
+            getPostres().map((response)=>{
+                responses.push(response)
             })
-            response = {
-                "attachment":{
-                    "type":"template",
-                    "payload":{
-                        "template_type":"generic",
-                        "elements":elements
-                    }
-                  }
-            }
-            responses.push(response);
             break;
         default:
             break;
@@ -137,7 +119,8 @@ function handlePostback(sender_psid,received_postback){
     callSendAPI(sender_psid,responses);
 }
 //envia mensajes de respuesta a facebook mediante la "send API"
-function callSendAPI(sender_psid,responses){ //response es un array con los mensajes que se enviará
+//responses:array con los mensajes que se enviará
+function callSendAPI(sender_psid,responses){ 
     responses.forEach((response)=>{
         const requestBody = {
             'recipient':{
@@ -163,10 +146,12 @@ function callSendAPI(sender_psid,responses){ //response es un array con los mens
     })
 }
 //end
+
 function getSaludo(){
     return {'text': 'Hola {{first_name}} 😄\nDesliza para que veas nuestras opciones 👇👇👇'}
 }
 function getBloqueInicial(){
+    //data:es un bloque,un mensaje y contiene elementos(cards)
     let data=[
         {
             'buttons':[
@@ -197,14 +182,14 @@ function getBloqueInicial(){
         }
     ]
     let elements=[];
-    data.forEach((block)=>{
+    data.forEach((element)=>{
         //creando botones
-        let buttons=getButtons(block.buttons);
+        let buttons=getButtons(element.buttons);
 
         elements.push({
-            "title":block.empresa,
-            "image_url":block.img_url,
-            "subtitle":block.descripcion,
+            "title":element.empresa,
+            "image_url":element.img_url,
+            "subtitle":element.descripcion,
             "buttons":buttons
         })
     })
@@ -221,12 +206,7 @@ function getMenuDia(){
     data={
         'dia': '2 DE MARZO',
         'entradas':['🍜 CALDO DE GALLINA','🐟 CEVICHE','🍣 ENSALADA DE PALTA'],
-        'segundos':['✅ ESTOFADO DE POLLO CON PAPAS','✅ ARROZ CON PATO','✅ TALLARINES VERDES CON BISTECK'],
-        'texto_accion':'¿Qué deseas realizar?',
-        'botones_accion':[
-            {'type':'postback','title':'REALIZAR PEDIDO 🏷','payload':'realizar_pedido'},
-            {'type':'postback','title':'VOLVER AL MENÚ PRINCIPAL 🏠','payload':'home'}
-        ]
+        'segundos':['✅ ESTOFADO DE POLLO CON PAPAS','✅ ARROZ CON PATO','✅ TALLARINES VERDES CON BISTECK']
     };
     let entradas_text='';
     let segundos_text='';
@@ -238,20 +218,9 @@ function getMenuDia(){
     data.segundos.map((segundo)=>{
         segundos_text+=segundo+'\n';
     });
-    //bloque sobre acciones
-    buttons=getButtons(data.botones_accion);
-    response_menu={'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY ${data.dia} \n\nENTRADAS:\n${entradas_text}\nSEGUNDOS:\n${segundos_text}`}
-    response_buttons={
-        'attachment':{
-            "type":"template",
-            "payload":{
-              "template_type":"button",
-              "text":data.texto_accion,
-              "buttons":buttons
-            }
-          }
-    }
-    return [response_menu,response_buttons];
+    responses.push({'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY ${data.dia} \n\nENTRADAS:\n${entradas_text}\nSEGUNDOS:\n${segundos_text}`})
+    responses.push(getAccion(MENU))
+    return responses;
 }
 function getComplementos(){
     let responses=[]
@@ -268,15 +237,44 @@ function getComplementos(){
 
     elements=[];
     data.gaseosas.map((gaseosa)=>{
-        //creamos los bloques de los productos
+        //creamos los elementos de los productos
         elements.push({
             'title':gaseosa.descripcion,
             'image_url':gaseosa.img_url,
             'subtitle':'Precio: '+gaseosa.precio
         })
     })
-    //creamos el mensaje donde tendrá todos los bloques
+    //creamos el mensaje donde tendrá todos los elementos
     responses.push(getGenericBlock(elements))
+    //agregamos la acción
+    responses.push(getAccion(GASEOSA))
+    return responses;
+}
+function getPostres(){
+    data={
+        'postres':[
+            {'descripcion':'✅ FLAN','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.50'},
+            {'descripcion':'✅ GELATINA','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.00'},
+            {'descripcion':'✅ GELATINA CON FLAN','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.00'},
+            {'descripcion':'✅ MARCIANOS','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.00'},
+        ],
+        'mensaje_inicial':`📌 ESTOS SON NUESTROS POSTRES\n(desliza a la derecha para verlos :) )`
+    }
+    elements=[]
+
+    responses.push({'text': data.mensaje_inicial})
+    data.postres.map((postre)=>{
+        //elementos de los postres
+        elements.push({
+            "title":postre.descripcion,
+            "image_url":postre.img_url,
+            "subtitle":"Precio: "+postre.precio
+        })
+    })
+    //creamos el mensaje donde tendrá todos los elementos
+    responses.push(getGenericBlock(elements))
+    //agregamos la acción
+    responses.push(getAccion(POSTRE))
     return responses;
 }
 /********************************************
@@ -307,10 +305,30 @@ function getGenericBlock(elements=[]){
         }
     }
 }
-
+//bloque que debe aparecer despues de cada consulta a menu,gaseosa o postre
+//tipo:{menu,gaseosa,postre}, para enviar a la pagina web qué está pidiendo primero
+function getAccion(tipo=''){
+    data={
+        'text':'¿Qué deseas hacer?',
+        'buttons':[
+            {'type':'web_url','url':`https://vizarro.herokuapp.com?preferencia=${tipo}`,'title':'REALIZAR PEDIDO 🛒'},
+            {'type':'postback','title':'VOLVER AL MENÚ PRINCIPAL 🏠','payload':'home'}
+        ]
+    }
+    return {
+        'attachment':{
+            "type":"template",
+            "payload":{
+              "template_type":"button",
+              "text":data.text,
+              "buttons":getButtons(data.buttons)
+            }
+          }
+    };
+}
 //pagina principal
-app.get('/',(req,res)=>{
-    res.status(200).send('main page of webhook...');
+app.get('/:preferencia',(req,res)=>{
+    res.status(200).send('main page of webhook...\n preferencia: '+req.params.preferencia);
 });
 
 //lanzamos el webhook
