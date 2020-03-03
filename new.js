@@ -193,22 +193,20 @@ function callSendAPI(sender_psid,responses){ //response es un array con los mens
 }
 //end
 function getSaludo(){
-    return {'text': 'Hola {{user_first_name}}! 😄'}
+    return {'text': 'Hola {{first_name}} 😄\nDesliza para que veas nuestras opciones 👇👇👇'}
 }
 function getBloqueInicial(){
-    let data={
-        'block1':{
+    let data=[
+        {
             'buttons':[
                 {'type':'web_url','url':'https://vizarro.herokuapp.com','title':'REALIZAR PEDIDO 🛒'},
                 {'type':'postback','title':'VER MENÚ DEL DIA 🍛','payload':'menu_dia'}
-                //{'type':'postback','title':'VER GASEOSAS','payload':'complementos'},
-                //{'type':'postback','title':'VER POSTRES 🍰','payload':'postres'},   
             ],
             'empresa':'Restaurante Sabor Peruano',
             'descripcion': 'Ahora puedes realizar tus pedidos mediante nuestro asistente virtual 🤖 😉',
             'img_url':'https://img.mesa247.pe/archivos/inversiones-sp-sabores-peruanos-eirl/sabores-peruanos-miraflores-logo.jpg'
         },
-        'block2':{
+        {
             'buttons':[
                 {'type':'postback','title':'VER GASEOSAS 🔰','payload':'complementos'},
                 {'type':'postback','title':'VER POSTRES 🍰','payload':'postres'},   
@@ -216,30 +214,37 @@ function getBloqueInicial(){
             'empresa':'Restaurante Sabor Peruano',
             'descripcion': 'Tambien puedes pedir un postre o gaseosa o añadirla a tu pedido 😊',
             'img_url':'https://img.mesa247.pe/archivos/inversiones-sp-sabores-peruanos-eirl/sabores-peruanos-miraflores-logo.jpg'
+        },
+        {
+            'buttons':[
+                {'type':'postback','title':'UBICANOS 🗺','payload':'ubicanos'},
+                {'type':'postback','title':'LLAMANOS 📞','payload':'llamanos'},   
+            ],
+            'empresa':'Contactanos',
+            'descripcion': 'Estamos atentos 😝',
+            'img_url':'https://img.mesa247.pe/archivos/inversiones-sp-sabores-peruanos-eirl/sabores-peruanos-miraflores-logo.jpg'
         }
-    }
-    //creando botones
-    let buttons_block1=getButtons(data.block1.buttons);
-    let buttons_block2=getButtons(data.block2.buttons);
+    ]
+    let elements=[];
+    data.forEach((block)=>{
+        //creando botones
+        let buttons=getButtons(block.buttons);
+
+        let temp_block={
+            "title":block.empresa,
+            "image_url":block.img_url,
+            "subtitle":block.descripcion,
+            "buttons":buttons
+        }
+        elements.push(temp_block)
+    })
+    elements=JSON.stringify(elements)
     let send={
         "attachment":{
             "type":"template",
             "payload":{
                 "template_type":"generic",
-                "elements":[
-                    {
-                        "title":data.block1.empresa,
-                        "image_url":data.block1.img_url,
-                        "subtitle":data.block1.descripcion,
-                        "buttons":buttons_block1
-                    },
-                    {
-                        "title":data.block2.empresa,
-                        "image_url":data.block2.img_url,
-                        "subtitle":data.block2.descripcion,
-                        "buttons":buttons_block2
-                    }
-                ]
+                "elements": elements
             }
         }
     };
