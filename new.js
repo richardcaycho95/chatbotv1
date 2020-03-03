@@ -251,6 +251,7 @@ function getComplementos(){
     return responses;
 }
 function getPostres(){
+    let responses=[]
     data={
         'postres':[
             {'descripcion':'✅ FLAN','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.50'},
