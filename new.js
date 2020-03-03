@@ -178,7 +178,8 @@ function getBloqueInicial(){
         {
             'buttons':[
                 {'type':'postback','title':'UBICANOS 🗺','payload':'ubicanos'},
-                {'type':'postback','title':'LLAMANOS 📞','payload':'llamanos'},   
+                {'type':'postback','title':'LLAMANOS 📞','payload':'llamanos'},
+                {'type':'postback','title':'NUESTRA COBERTURA 🛵','payload':'llamanos'},
             ],
             'empresa':'Contactanos',
             'descripcion': 'Estamos atentos 😝',
@@ -223,7 +224,7 @@ function getMenuDia(){
     data.segundos.map((segundo)=>{
         segundos_text+=segundo+'\n';
     });
-    responses.push({'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY ${data.dia} \n\nENTRADAS:\n${entradas_text}\nSEGUNDOS:\n${segundos_text}`})
+    responses.push({'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY ${data.dia}😋 \n\nENTRADAS:\n${entradas_text}\nSEGUNDOS:\n${segundos_text}`})
     responses.push(getAccion(MENU))
     return responses;
 }
