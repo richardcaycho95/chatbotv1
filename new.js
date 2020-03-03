@@ -93,40 +93,14 @@ function handlePostback(sender_psid,received_postback){
             //se debe recorrer el bucle para leer los formatos json
             let temp=getMenuDia();
             temp.forEach((response)=>{
-                responses.push(response);
+                responses.push(response)
             })
             break;
         case 'complementos':
-            data=[
-                {'descripcion':'✅ PERSONAL 410 ml','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 1.50'},
-                {'descripcion':'✅ GORDITA O JUMBO 625ml','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 3.00'},
-                {'descripcion':'✅ 1 LITRO','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 5.00'},
-                {'descripcion':'✅ 1 LITRO Y MEDIO','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 7.00'},
-            ];
-            response={
-                'text': `📌 ESTOS SON NUESTROS COMPLEMENTOS\n(desliza a la derecha para verlos :) )`
-            };
-            responses.push(response);
-
-            elements=[];
-            data.map((complemento)=>{
-                let element={
-                    "title":complemento.descripcion,
-                    "image_url":complemento.img_url,
-                    "subtitle":"Precio: "+complemento.precio
-                };
-                elements.push(element);
+            temp_complementos=getComplementos();
+            temp_complementos.forEach((response)=>{
+                responses.push(response)
             })
-            response = {
-                "attachment":{
-                    "type":"template",
-                    "payload":{
-                        "template_type":"generic",
-                        "elements":elements
-                    }
-                  }
-            }
-            responses.push(response);
             break;
         case 'postres':
             data=[
@@ -135,10 +109,7 @@ function handlePostback(sender_psid,received_postback){
                 {'descripcion':'✅ GELATINA CON FLAN','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.00'},
                 {'descripcion':'✅ MARCIANOS','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.00'},
             ];
-            response={
-                'text': `📌 ESTOS SON NUESTROS POSTRES\n(desliza a la derecha para verlos :) )`
-            };
-            responses.push(response);
+            responses.push({'text': `📌 ESTOS SON NUESTROS POSTRES\n(desliza a la derecha para verlos :) )`});
 
             elements=[];
             data.map((complemento)=>{
@@ -230,42 +201,23 @@ function getBloqueInicial(){
         //creando botones
         let buttons=getButtons(block.buttons);
 
-        let temp_block={
+        elements.push({
             "title":block.empresa,
             "image_url":block.img_url,
             "subtitle":block.descripcion,
             "buttons":buttons
-        }
-        elements.push(temp_block)
+        })
     })
-    elements=JSON.stringify(elements)
-    let send={
-        "attachment":{
-            "type":"template",
-            "payload":{
-                "template_type":"generic",
-                "elements": elements
-            }
-        }
-    };
-    return send
+    //elements=JSON.stringify(elements)
+    return getGenericBlock(elements)
 }
 function getEntradas(){
     let data=[{'title':'CALDO DE GALLINA',}]
 }
-function getButtons(buttons){//buttons: array que debe tener de forma obligatoria lso campos (type,title,payload)
-    let temp=[];
-    buttons.forEach((button)=>{
-        if (button.type==='web_url') {
-            format={ "type":button.type, "url":button.url,"title":button.title }
-        } else{
-            format={ "type":button.type, "title":button.title, "payload":button.payload }
-        }
-        temp.push(format)
-    })
-    return JSON.stringify(temp);
-}
-function getMenuDia(){//return array: [0]=> response del menu,[1]=>response de los botones de accción; se debe leer con bucle
+
+//return array: [0]=> response del menu,[1]=>response de los botones de accción
+//se debe leer con bucle
+function getMenuDia(){
     data={
         'dia': '2 DE MARZO',
         'entradas':['🍜 CALDO DE GALLINA','🐟 CEVICHE','🍣 ENSALADA DE PALTA'],
@@ -299,9 +251,64 @@ function getMenuDia(){//return array: [0]=> response del menu,[1]=>response de l
             }
           }
     }
-    let temp=[response_menu,response_buttons]
-    return temp;
+    return [response_menu,response_buttons];
 }
+function getComplementos(){
+    let responses=[]
+    data={
+        'gaseosas':[
+            {'descripcion':'✅ PERSONAL 410 ml','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 1.50'},
+            {'descripcion':'✅ GORDITA O JUMBO 625ml','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 3.00'},
+            {'descripcion':'✅ 1 LITRO','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 5.00'},
+            {'descripcion':'✅ 1 LITRO Y MEDIO','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 7.00'}
+        ],
+        'mensaje_inicial':'📌 TENEMOS GASEOSAS INCA KOLA Y COCA COLA 😀\n(desliza a la derecha para verlos :) )'
+    }
+    responses.push({'text': data.mensaje_inicial})
+
+    elements=[];
+    data.gaseosas.map((gaseosa)=>{
+        //creamos los bloques de los productos
+        elements.push({
+            'title':gaseosa.descripcion,
+            'image_url':gaseosa.img_url,
+            'subtitle':'Precio: '+gaseosa.precio
+        })
+    })
+    //creamos el mensaje donde tendrá todos los bloques
+    responses.push(getGenericBlock(elements))
+    return responses;
+}
+/********************************************
+ * FUNCIONES BASES PARA LA CREACION DE FORMATOS JSON
+ * ****************************************** */ 
+function getButtons(buttons){//buttons: array que debe tener de forma obligatoria lso campos (type,title,payload)
+    let temp=[];
+    buttons.forEach((button)=>{
+        if (button.type==='web_url') {
+            format={ "type":button.type, "url":button.url,"title":button.title }
+        } else{
+            format={ "type":button.type, "title":button.title, "payload":button.payload }
+        }
+        temp.push(format)
+    })
+    return JSON.stringify(temp);
+}
+//devuelve formato json para crear mensaje de conjuntos de bloque
+//elements: array donde se tiene los elementos
+function getGenericBlock(elements=[]){
+    return {
+        "attachment":{
+            "type":"template",
+            "payload":{
+                "template_type":"generic",
+                "elements":elements
+            }
+        }
+    }
+}
+
+//pagina principal
 app.get('/',(req,res)=>{
     res.status(200).send('main page of webhook...');
 });
