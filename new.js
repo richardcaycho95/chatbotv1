@@ -95,14 +95,14 @@ function handlePostback(sender_psid,received_postback){
         case 'menu_dia':
             //mensaje donde se detalla el menú del dia y se pregunta sobre la acción a realizar
             //se debe recorrer el bucle para leer los formatos json
-            getMenuDia().map((response)=>{
+            getMenuDia().forEach((response)=>{
                 responses.push(response)
             })
             break;
         case 'complementos':
             //mensaje donde se muestra las gaseosas y se llama a la accción
             //se debe recorrer el bucle para leer los formatos json
-            getComplementos().map((response)=>{
+            getComplementos().forEach((response)=>{
                 responses.push(response)
             })
             break;
@@ -203,6 +203,7 @@ function getEntradas(){
 //return array: [0]=> response del menu,[1]=>response de los botones de accción
 //se debe leer con bucle
 function getMenuDia(){
+    let responses=[]
     data={
         'dia': '2 DE MARZO',
         'entradas':['🍜 CALDO DE GALLINA','🐟 CEVICHE','🍣 ENSALADA DE PALTA'],
@@ -328,8 +329,8 @@ function getAccion(tipo=''){
     };
 }
 //pagina principal
-app.get('/:preferencia',(req,res)=>{
-    res.status(200).send('main page of webhook...\n preferencia: '+req.params.preferencia);
+app.get('/',(req,res)=>{
+    res.status(200).send('main page of webhook...\n preferencia: '+req.query.preferencia);
 });
 
 //lanzamos el webhook
