@@ -82,7 +82,7 @@ function handlePostback(sender_psid,received_postback){
     let data;
     let elements;
 
-    console.log(`payload postback ${payload}`);
+    console.log(`payload postback: ${payload}`);
     //parametros del payload
     switch (payload) {
         case 'home':
@@ -111,9 +111,11 @@ function handlePostback(sender_psid,received_postback){
         case 'postres':
             //mensaje donde se muestra los postres y se llama a la accción
             //se debe recorrer el bucle para leer los formatos json
-            getPostres().map((response)=>{
+            let postres=getPostres()
+            postres.map((response)=>{
                 responses.push(response)
             })
+            console.log(postres)
             break;
         default:
             break;
