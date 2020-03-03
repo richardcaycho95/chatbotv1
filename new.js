@@ -102,9 +102,11 @@ function handlePostback(sender_psid,received_postback){
         case 'complementos':
             //mensaje donde se muestra las gaseosas y se llama a la accción
             //se debe recorrer el bucle para leer los formatos json
-            getComplementos().forEach((response)=>{
+            let comple=getComplementos()
+            comple.forEach((response)=>{
                 responses.push(response)
             })
+            console.log(comple)
             break;
         case 'postres':
             //mensaje donde se muestra los postres y se llama a la accción
