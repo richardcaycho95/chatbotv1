@@ -159,7 +159,7 @@ function getBloqueInicial(){
     let data=[
         {
             'buttons':[
-                {'type':'web_url','url':'https://sabor-peruano-app.herokuapp.com','title':'REALIZAR PEDIDO 🛒'},
+                {'type':'web_url','url':'https://sabor-peruano-app.herokuapp.com?user_id={{messenger_user_id}}','title':'REALIZAR PEDIDO 🛒'},
                 {'type':'postback','title':'VER MENÚ DEL DIA 🍛','payload':'menu_dia'}
             ],
             'empresa':'Restaurante Sabor Peruano',
