@@ -58,7 +58,15 @@ app.get('/webhook',(req,res)=>{
         res.sendStatus(404);
     }
 });
-
+//funcion que recibe los datos del pedido
+app.get('/pedidopostback',(req,res)=>{
+    let body = req.query
+    let response = {
+        "text": `Excelente, tu texto es: ${body.texto}`
+    }
+    res.status(200).send('Please close this window to return to the conversation thread.')
+    callSendAPI(body.psid, response)
+});
 //sección de funciones basicas
 
 //handles message events
