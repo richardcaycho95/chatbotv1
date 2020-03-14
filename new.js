@@ -167,7 +167,11 @@ function getBloqueInicial(){
     let data=[
         {
             'buttons':[
-                {'type':'web_url','url':'https://sabor-peruano-app.herokuapp.com','title':'REALIZAR PEDIDO 🛒','messenger_extensions':'true'},
+                {
+                    'type':'web_url','url':'https://sabor-peruano-app.herokuapp.com',
+                    'title':'REALIZAR PEDIDO 🛒','webview_height_ratio':'tall',
+                    'messenger_extensions':'true','fallback_url':'https://sabor-peruano-app.herokuapp.com'
+                },
                 {'type':'postback','title':'VER MENÚ DEL DIA 🍛','payload':'menu_dia'}
             ],
             'empresa':'Restaurante Sabor Peruano',
@@ -299,7 +303,11 @@ function getButtons(buttons){//buttons: array que debe tener de forma obligatori
     let temp=[];
     buttons.forEach((button)=>{
         if (button.type==='web_url') {
-            format={ "type":button.type, "url":button.url,"title":button.title }
+            format={ 
+                "type":button.type, "url":button.url,"title":button.title,
+                "webview_height_ratio":button.webview_height_ratio,"messenger_extensions":button.messenger_extensions,
+                "fallback_url":button.fallback_url
+            }
         } else{
             format={ "type":button.type, "title":button.title, "payload":button.payload }
         }
