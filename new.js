@@ -134,6 +134,7 @@ function handlePostback(sender_psid,received_postback){
 //responses:array con los mensajes que se enviará
 function callSendAPI(sender_psid,responses){ 
     console.log('psid: '+sender_psid)
+    console.log(responses)
     responses.forEach((response)=>{
         const requestBody = {
             'recipient':{
