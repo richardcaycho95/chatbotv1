@@ -64,6 +64,7 @@ app.get('/pedidopostback',(req,res)=>{
     let response = {
         "text": `Excelente, tu texto es: ${body.texto}`
     }
+    console.log(body)
     res.status(200).send('Please close this window to return to the conversation thread.')
     callSendAPI(body.psid, response)
 });
@@ -133,6 +134,7 @@ function handlePostback(sender_psid,received_postback){
 //envia mensajes de respuesta a facebook mediante la "send API"
 //responses:array con los mensajes que se enviará
 function callSendAPI(sender_psid,responses){ 
+    console.log('psid: '+sender_psid)
     responses.forEach((response)=>{
         const requestBody = {
             'recipient':{
