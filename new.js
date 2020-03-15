@@ -166,8 +166,8 @@ function getUserName(sender_psid){
     },(err,res,body)=>{
         if (!err) {
             console.log('Obteniendo nombre de usuario')
-            console.log(res)
-            return res.first_name
+            console.log(body)
+            return body.first_name
         } else{
             console.error('No se puede responder')
         }
