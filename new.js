@@ -75,7 +75,7 @@ function handleMessage(sender_psid,received_message){
     let response; //respuesta en formato json
 
     if (received_message.text) {
-        responses.push(getSaludo()) //creando el saludo
+        responses.push(getSaludo(sender_psid)) //creando el saludo
         responses.push(getBloqueInicial()) //creando bloque inicial
         console.log(getBloqueInicial().attachment.payload)
     }
@@ -159,10 +159,25 @@ function callSendAPI(sender_psid,responses){
         })
     })
 }
+function getUserName(sender_psid){ 
+    request({
+        'uri':`https://graph.facebook.com/${sender_psid}?fields=first_name,last_name,profile_pic&access_token=${process.env.PAGE_ACCESS_TOKEN}`,
+        'method': 'GET'
+    },(err,res,body)=>{
+        if (!err) {
+            console.log('Obteniendo nombre de usuario')
+            console.log(res)
+            return res.first_name
+        } else{
+            console.error('No se puede responder')
+        }
+    })
+    
+}
 //end
 
-function getSaludo(){
-    return {'text': 'Hola {{first_name}} 😄\nDesliza para que veas nuestras opciones 👇👇👇'}
+function getSaludo(sender_psid){
+    return {'text': `Hola ${getUserName(sender_psid)} 😄\nDesliza para que veas nuestras opciones 👇👇👇`}
 }
 function getBloqueInicial(){
     //data:es un bloque,un mensaje y contiene elementos(cards)
