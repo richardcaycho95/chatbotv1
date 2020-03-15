@@ -99,10 +99,6 @@ function handlePostback(sender_psid,received_postback){
         case 'home':
             responses.push(getBloqueInicial())
             break;
-        case 'realizar_pedido':
-            //primero se pregunta que entrada desea
-            //responses.push(getEntradas())
-            break;
         case 'menu_dia':
             //mensaje donde se detalla el menú del dia y se pregunta sobre la acción a realizar
             //se debe recorrer el bucle para leer los formatos json
@@ -135,33 +131,6 @@ function handlePostback(sender_psid,received_postback){
 }
 //envia mensajes de respuesta a facebook mediante la "send API"
 //responses:array con los mensajes que se enviará
-// function callSendAPI(sender_psid,responses){ 
-//     console.log('psid: '+sender_psid)
-//     console.log(responses)
-//     responses.forEach((response)=>{
-//         const requestBody = {
-//             'recipient':{
-//                 'id': sender_psid
-//             },
-//             'message': response
-//         };
-    
-//         request({
-//             'uri': 'https://graph.facebook.com/v6.0/me/messages',
-//             'qs':{
-//                 'access_token': process.env.PAGE_ACCESS_TOKEN
-//             },
-//             'method': 'POST',
-//             'json': requestBody
-//         },(err,res,body)=>{
-//             if (!err) {
-//                 console.log('Mensaje respondido con el bot');
-//             } else{
-//                 console.error('No se puede responder');
-//             }
-//         })
-//     })
-// }
 function callSendAPI(sender_psid,responses){ 
     console.log('psid: '+sender_psid)
     console.log(responses)
@@ -173,20 +142,24 @@ function callSendAPI(sender_psid,responses){
             },
             'message': response
         }
-        promises.push(   
-            request({
-                'uri': 'https://graph.facebook.com/v6.0/me/messages',
-                'qs':{
-                    'access_token': process.env.PAGE_ACCESS_TOKEN
-                },
-                'method': 'POST',
-                'json': requestBody
-            },(err,res,body)=>{
-                if (!err) {
-                    console.log('Mensaje respondido con el bot');
-                } else{
-                    console.error('No se puede responder');
-                }
+        promises.push(
+            new Promise((resolve,reject)=>{
+                request({
+                    'uri': 'https://graph.facebook.com/v6.0/me/messages',
+                    'qs':{
+                        'access_token': process.env.PAGE_ACCESS_TOKEN
+                    },
+                    'method': 'POST',
+                    'json': requestBody
+                },(err,res,body)=>{
+                    if (!err) {
+                        console.log('Mensaje respondido con el bot');
+                        return resolve()
+                    } else{
+                        console.error('No se puede responder');
+                        return reject()
+                    }
+                })
             })
         )
     })
