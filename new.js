@@ -205,6 +205,7 @@ function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene e
             if (!err) {
                 console.log('Obteniendo nombre de usuario')
                 console.log(body)
+                console.log(typeof(body))
                 console.log(`El nombre es ${body.first_name}`)
                 resolve({'text': `Hola ${body.first_name} 😄\nDesliza para que veas nuestras opciones 👇👇👇`})
             } else{
