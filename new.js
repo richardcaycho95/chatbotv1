@@ -194,21 +194,6 @@ function callSendAPI(sender_psid,responses){
         console.log('in promise')
     })
 }
-function getUserName(sender_psid,callback){ 
-    request({
-        'uri':`https://graph.facebook.com/${sender_psid}?fields=first_name,last_name,profile_pic&access_token=${process.env.PAGE_ACCESS_TOKEN}`,
-        'method': 'GET'
-    },(err,res,body)=>{
-        if (!err) {
-            console.log('Obteniendo nombre de usuario')
-            console.log(body)
-            return body.first_name
-        } else{
-            console.error('No se puede responder')
-        }
-    })
-    
-}
 //end
 
 function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene el saludo con el nombre
@@ -220,6 +205,7 @@ function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene e
             if (!err) {
                 console.log('Obteniendo nombre de usuario')
                 console.log(body)
+                console.log(`El nombre es ${body.first_name}`)
                 resolve({'text': `Hola ${body.first_name} 😄\nDesliza para que veas nuestras opciones 👇👇👇`})
             } else{
                 console.error('No se puede responder')
