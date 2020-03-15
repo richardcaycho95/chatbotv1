@@ -75,8 +75,9 @@ function handleMessage(sender_psid,received_message){
     let response; //respuesta en formato json
 
     if (received_message.text) {
-        getSaludo.then(response =>{
-            responses.push(getSaludo(sender_psid)) //creando el saludo
+        getSaludo(sender_psid).then(response =>{
+            console.log(response)
+            responses.push(response) //creando el saludo
             responses.push(getBloqueInicial()) //creando bloque inicial
             callSendAPI(sender_psid,responses);
         })
