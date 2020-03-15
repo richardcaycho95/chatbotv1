@@ -1,7 +1,6 @@
 const express= require('express');
 const bodyParser = require('body-parser');
 const request = require('request');
-const rp = require('request-promise');
 
 //variables constantes de ambiente
 const SUSBCRIBE_MODE='subscribe';
