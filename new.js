@@ -203,6 +203,7 @@ function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene e
             'method': 'GET'
         },(err,res,body)=>{
             if (!err) {
+                body=JSON.parse(body)
                 console.log('Obteniendo nombre de usuario')
                 console.log(body)
                 console.log(typeof(body))
