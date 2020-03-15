@@ -1,6 +1,7 @@
 const express= require('express');
 const bodyParser = require('body-parser');
 const request = require('request');
+const rp = require('request-promise');
 
 //variables constantes de ambiente
 const SUSBCRIBE_MODE='subscribe';
@@ -75,11 +76,13 @@ function handleMessage(sender_psid,received_message){
     let response; //respuesta en formato json
 
     if (received_message.text) {
-        responses.push(getSaludo(sender_psid)) //creando el saludo
-        responses.push(getBloqueInicial()) //creando bloque inicial
-        console.log(getBloqueInicial().attachment.payload)
+        getSaludo.then(response =>{
+            responses.push(getSaludo(sender_psid)) //creando el saludo
+            responses.push(getBloqueInicial()) //creando bloque inicial
+            callSendAPI(sender_psid,responses);
+        })
+        //console.log(getBloqueInicial().attachment.payload)
     }
-    callSendAPI(sender_psid,responses);
 }
 //handles messaging_postback events
 function handlePostback(sender_psid,received_postback){
@@ -132,34 +135,66 @@ function handlePostback(sender_psid,received_postback){
 }
 //envia mensajes de respuesta a facebook mediante la "send API"
 //responses:array con los mensajes que se enviará
+// function callSendAPI(sender_psid,responses){ 
+//     console.log('psid: '+sender_psid)
+//     console.log(responses)
+//     responses.forEach((response)=>{
+//         const requestBody = {
+//             'recipient':{
+//                 'id': sender_psid
+//             },
+//             'message': response
+//         };
+    
+//         request({
+//             'uri': 'https://graph.facebook.com/v6.0/me/messages',
+//             'qs':{
+//                 'access_token': process.env.PAGE_ACCESS_TOKEN
+//             },
+//             'method': 'POST',
+//             'json': requestBody
+//         },(err,res,body)=>{
+//             if (!err) {
+//                 console.log('Mensaje respondido con el bot');
+//             } else{
+//                 console.error('No se puede responder');
+//             }
+//         })
+//     })
+// }
 function callSendAPI(sender_psid,responses){ 
     console.log('psid: '+sender_psid)
     console.log(responses)
+    let promises=[]
     responses.forEach((response)=>{
-        const requestBody = {
+        requestBody = {
             'recipient':{
                 'id': sender_psid
             },
             'message': response
-        };
-    
-        request({
-            'uri': 'https://graph.facebook.com/v6.0/me/messages',
-            'qs':{
-                'access_token': process.env.PAGE_ACCESS_TOKEN
-            },
-            'method': 'POST',
-            'json': requestBody
-        },(err,res,body)=>{
-            if (!err) {
-                console.log('Mensaje respondido con el bot');
-            } else{
-                console.error('No se puede responder');
-            }
-        })
+        }
+        promises.push(   
+            request({
+                'uri': 'https://graph.facebook.com/v6.0/me/messages',
+                'qs':{
+                    'access_token': process.env.PAGE_ACCESS_TOKEN
+                },
+                'method': 'POST',
+                'json': requestBody
+            },(err,res,body)=>{
+                if (!err) {
+                    console.log('Mensaje respondido con el bot');
+                } else{
+                    console.error('No se puede responder');
+                }
+            })
+        )
+    })
+    Promise.all(promises).then(()=>{
+        console.log('in promise')
     })
 }
-function getUserName(sender_psid){ 
+function getUserName(sender_psid,callback){ 
     request({
         'uri':`https://graph.facebook.com/${sender_psid}?fields=first_name,last_name,profile_pic&access_token=${process.env.PAGE_ACCESS_TOKEN}`,
         'method': 'GET'
@@ -176,8 +211,23 @@ function getUserName(sender_psid){
 }
 //end
 
-function getSaludo(sender_psid){
-    return {'text': `Hola ${getUserName(sender_psid)} 😄\nDesliza para que veas nuestras opciones 👇👇👇`}
+function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene el saludo con el nombre
+    return new Promise((resolve,reject)=>{
+        request({
+            'uri':`https://graph.facebook.com/${sender_psid}?fields=first_name,last_name,profile_pic&access_token=${process.env.PAGE_ACCESS_TOKEN}`,
+            'method': 'GET'
+        },(err,res,body)=>{
+            if (!err) {
+                console.log('Obteniendo nombre de usuario')
+                console.log(body)
+                resolve({'text': `Hola ${body.first_name} 😄\nDesliza para que veas nuestras opciones 👇👇👇`})
+            } else{
+                console.error('No se puede responder')
+                reject()
+            }
+        })
+    })
+    
 }
 function getBloqueInicial(){
     //data:es un bloque,un mensaje y contiene elementos(cards)
