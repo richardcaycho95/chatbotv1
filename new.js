@@ -59,10 +59,10 @@ app.get('/webhook',(req,res)=>{
     }
 });
 //funcion que recibe los datos del pedido
-app.get('/pedidopostback',(req,res)=>{
+app.post('/pedidopostback',(req,res)=>{
     let body = req.query
     let responses=[]
-    responses.push({"text": `Excelente, tu texto es: ${body.texto}`})
+    responses.push({"text": `Excelente, tu texto es: ${JSON.stringify(body)}`})
     console.log(body)
     res.status(200).send('Please close this window to return to the conversation thread.')
     callSendAPI(body.psid, responses)
