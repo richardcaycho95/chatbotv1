@@ -59,7 +59,7 @@ app.get('/webhook',(req,res)=>{
     }
 });
 //funcion que recibe los datos del pedido
-app.post('/pedidopostback',(req,res)=>{
+app.get('/pedidopostback',(req,res)=>{
     let body = req.query
     let responses=[]
     responses.push({"text": `Excelente, tu texto es: ${JSON.stringify(body)}`})
@@ -389,6 +389,6 @@ app.listen(process.env.PORT || 5000,()=>{
 
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+    //res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
     next()
 })
