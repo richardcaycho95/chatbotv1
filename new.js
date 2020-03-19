@@ -59,7 +59,7 @@ app.get('/webhook',(req,res)=>{
     }
 });
 //funcion que recibe los datos del pedido
-app.post('/pedidopostback',(req,res)=>{
+app.get('/pedidopostback',(req,res)=>{
     let body = req.query
     let responses=[]
     responses.push({"text": `Excelente, tu texto es: ${JSON.stringify(body)}`})
@@ -199,7 +199,7 @@ function getBloqueInicial(){
                     'type':'web_url','url':'https://sabor-peruano-app.herokuapp.com',
                     'title':'REALIZAR PEDIDO 🛒','webview_height_ratio':'tall',
                     'messenger_extensions':'true','fallback_url':'https://sabor-peruano-app.herokuapp.com'
-                },
+                },|
                 {'type':'postback','title':'VER MENÚ DEL DIA 🍛','payload':'menu_dia'}
             ],
             'empresa':'Restaurante Sabor Peruano',
