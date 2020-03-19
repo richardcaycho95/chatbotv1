@@ -199,7 +199,7 @@ function getBloqueInicial(){
                     'type':'web_url','url':'https://sabor-peruano-app.herokuapp.com',
                     'title':'REALIZAR PEDIDO 🛒','webview_height_ratio':'tall',
                     'messenger_extensions':'true','fallback_url':'https://sabor-peruano-app.herokuapp.com'
-                },|
+                },
                 {'type':'postback','title':'VER MENÚ DEL DIA 🍛','payload':'menu_dia'}
             ],
             'empresa':'Restaurante Sabor Peruano',
