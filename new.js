@@ -1,6 +1,13 @@
 const express= require('express');
 const bodyParser = require('body-parser');
 const request = require('request');
+const admin=require('firebase-admin');
+
+admin.initializeApp({
+    credential: admin.credential.applicationDefault(),
+    databaseURL: "https://chatbot-delivery.firebaseio.com",
+})
+const db=admin.database()
 
 //variables constantes de ambiente
 const SUSBCRIBE_MODE='subscribe';
@@ -63,6 +70,7 @@ app.get('/pedidopostback',(req,res)=>{
     let body = req.query
     let responses=[]
     responses.push({"text": `Excelente, tu texto es: ${JSON.stringify(body)}`})
+    responses.push(getQuickReply('manda tu ubicacion'))
     console.log(body)
     res.status(200).send('Please close this window to return to the conversation thread.')
     callSendAPI(body.psid, responses)
@@ -354,6 +362,19 @@ function getGenericBlock(elements=[]){
                 "elements":elements
             }
         }
+    }
+}
+function getQuickReply(text){
+    return {
+        "text": text,
+        "quick_replies":[
+            {
+                "content_type":"location",
+                "title":"Enviar Ubicación",
+                "payload":"SEND_:UBICATION",
+                "image_url":"https://i.pinimg.com/236x/ec/97/2f/ec972f58852a4571320fe627607f91c6.jpg"
+            }
+        ]
     }
 }
 //bloque que debe aparecer despues de cada consulta a menu,gaseosa o postre
