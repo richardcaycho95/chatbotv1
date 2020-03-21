@@ -156,7 +156,7 @@ function callSendAPI(sender_psid,responses,messaging_type='RESPONSE'){
             'json': requestBody
         },(err,res,body)=>{
             if (!err) {
-                console.log('Mensaje respondido con el bot');
+                console.log(`Mensaje respondido con el bot, el response ${JSON.stringify(response)}`);
             } else{
                 console.error('No se puede responder');
             }
