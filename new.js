@@ -139,17 +139,17 @@ function handlePostback(sender_psid,received_postback){
 }
 //envia mensajes de respuesta a facebook mediante la "send API"
 //responses:array con los mensajes que se enviará
-function callSendAPI(sender_psid,responses){ 
+function callSendAPI(sender_psid,responses,messaging_type='RESPONSE'){ 
     console.log('psid: '+sender_psid)
-    console.log(responses)
+    console.log(JSON.stringify(responses))
     let promises=[]
     responses.forEach((response)=>{
         requestBody = {
-            'recipient':{
-                'id': sender_psid
-            },
+            'recipient':{ 'id': sender_psid },
+            'messaging_type': messaging_type,
             'message': response
         }
+
         promises.push(
             new Promise((resolve,reject)=>{
                 request({
@@ -371,7 +371,7 @@ function getQuickReply(text){
             {
                 "content_type":"text",
                 "title":"Enviar Ubicación",
-                "payload":"SEND_:UBICATION",
+                "payload":"SEND_UBICATION",
                 "image_url":"https://i.pinimg.com/236x/ec/97/2f/ec972f58852a4571320fe627607f91c6.jpg"
             }
         ]
