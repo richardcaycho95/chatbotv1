@@ -3,11 +3,11 @@ const bodyParser = require('body-parser');
 const request = require('request');
 const admin=require('firebase-admin');
 
-admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-    databaseURL: "https://chatbot-delivery.firebaseio.com",
-})
-const db=admin.database()
+// admin.initializeApp({
+//     credential: admin.credential.applicationDefault(),
+//     databaseURL: "https://chatbot-delivery.firebaseio.com",
+// })
+// const db=admin.database()
 
 //variables constantes de ambiente
 const SUSBCRIBE_MODE='subscribe';
