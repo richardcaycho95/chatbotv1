@@ -162,9 +162,6 @@ function callSendAPI(sender_psid,responses,messaging_type='RESPONSE'){
             }
         })
     })
-    Promise.all(promises).then(()=>{
-        console.log('in promise')
-    })
 }
 //end
 
