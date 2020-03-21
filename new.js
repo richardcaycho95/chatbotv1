@@ -142,34 +142,25 @@ function handlePostback(sender_psid,received_postback){
 function callSendAPI(sender_psid,responses,messaging_type='RESPONSE'){ 
     console.log('psid: '+sender_psid)
     console.log(JSON.stringify(responses))
-    let promises=[]
-    responses.forEach((response)=>{
+    responses.forEach(async response=>{
         requestBody = {
             'recipient':{ 'id': sender_psid },
             'messaging_type': messaging_type,
             'message': response
         }
 
-        promises.push(
-            new Promise((resolve,reject)=>{
-                request({
-                    'uri': 'https://graph.facebook.com/v6.0/me/messages',
-                    'qs':{
-                        'access_token': process.env.PAGE_ACCESS_TOKEN
-                    },
-                    'method': 'POST',
-                    'json': requestBody
-                },(err,res,body)=>{
-                    if (!err) {
-                        console.log('Mensaje respondido con el bot');
-                        return resolve()
-                    } else{
-                        console.error('No se puede responder');
-                        return reject()
-                    }
-                })
-            })
-        )
+        await request({
+            'uri': 'https://graph.facebook.com/v6.0/me/messages',
+            'qs':{ 'access_token': process.env.PAGE_ACCESS_TOKEN },
+            'method': 'POST',
+            'json': requestBody
+        },(err,res,body)=>{
+            if (!err) {
+                console.log('Mensaje respondido con el bot');
+            } else{
+                console.error('No se puede responder');
+            }
+        })
     })
     Promise.all(promises).then(()=>{
         console.log('in promise')
