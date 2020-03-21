@@ -369,7 +369,7 @@ function getQuickReply(text){
         "text": text,
         "quick_replies":[
             {
-                "content_type":"location",
+                "content_type":"text",
                 "title":"Enviar Ubicación",
                 "payload":"SEND_:UBICATION",
                 "image_url":"https://i.pinimg.com/236x/ec/97/2f/ec972f58852a4571320fe627607f91c6.jpg"
