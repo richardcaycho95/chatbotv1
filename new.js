@@ -375,14 +375,14 @@ function getRecibo(){
                 "recipient_name":"Stephane Crozatier",
                 "order_number":"12345678902",
                 "currency":"PEN",
-                "payment_method":"Efectivo",
+                "payment_method":"Por Pagar",
                 "order_url":"http://petersapparel.parseapp.com/order?order_id=123456",
                 "timestamp":"1428444852",
                 "address":{
                     "street_1":"Avenida norte sur",
                     "street_2":"",
                     "city":"Carabayllo",
-                    "postal_code":"15118",
+                    "postal_code":"",
                     "state":"LIMA",
                     "country":"PE"
                 },
@@ -392,21 +392,21 @@ function getRecibo(){
                 "adjustments":[],
                 "elements":[
                     {
-                    "title":"Classic White T-Shirt",
-                    "subtitle":"100% Soft and Luxurious Cotton",
-                    "quantity":2,
-                    "price":50,
+                    "title":"Entrada:",
+                    "subtitle":"Caldo de gallina (1) \nCeviche (2)",
+                    "quantity":0,
+                    "price":0,
                     "currency":"PEN",
                     "image_url":"http://petersapparel.parseapp.com/img/whiteshirt.png"
                     },
                     {
-                    "title":"Classic Gray T-Shirt",
-                    "subtitle":"100% Soft and Luxurious Cotton",
-                    "quantity":1,
-                    "price":25,
+                    "title":"Segundo:",
+                    "subtitle":"Caldo de gallina (1) \nCeviche (2)",
+                    "quantity":0,
+                    "price":0,
                     "currency":"PEN",
-                    "image_url":"http://petersapparel.parseapp.com/img/grayshirt.png"
-                    }
+                    "image_url":"http://petersapparel.parseapp.com/img/whiteshirt.png"
+                    },
                 ]
             }
         }
