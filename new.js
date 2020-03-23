@@ -75,7 +75,6 @@ app.get('/pedidopostback',(req,res)=>{
         let comentario=body.comentario
         let pedidos=JSON.parse(body.pedido)
         let complementos=JSON.parse(body.complementos)
-        let data_text=JSON.parse(body.data_text)
 
         responses.push({"text": `Excelente, tu texto es: ${JSON.stringify(body)}`})
         //responses.push(getQuickReply('manda tu ubicacion'))
