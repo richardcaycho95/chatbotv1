@@ -5,7 +5,7 @@ const admin=require('firebase-admin');
 //const path = require('path');
 
 admin.initializeApp({
-    credential: __dirname+'/assets/chatbot-key.json',
+    credential: require('/assets/chatbot-key.json'),
     databaseURL: "https://chatbot-delivery.firebaseio.com",
 })
 const db=admin.database()
