@@ -374,41 +374,29 @@ function getRecibo(){
                 "template_type":"receipt",
                 "recipient_name":"Stephane Crozatier",
                 "order_number":"12345678902",
-                "currency":"USD",
-                "payment_method":"Visa 2345",        
+                "currency":"PEN",
+                "payment_method":"Efectivo",
                 "order_url":"http://petersapparel.parseapp.com/order?order_id=123456",
-                "timestamp":"1428444852",         
+                "timestamp":"1428444852",
                 "address":{
-                    "street_1":"1 Hacker Way",
+                    "street_1":"Avenida norte sur",
                     "street_2":"",
-                    "city":"Menlo Park",
-                    "postal_code":"94025",
-                    "state":"CA",
-                    "country":"US"
+                    "city":"Carabayllo",
+                    "postal_code":"15118",
+                    "state":"LIMA",
+                    "country":"PE"
                 },
                 "summary":{
-                    "subtotal":75.00,
-                    "shipping_cost":4.95,
-                    "total_tax":6.19,
-                    "total_cost":56.14
+                    "total_cost":20.00
                 },
-                "adjustments":[
-                    {
-                    "name":"New Customer Discount",
-                    "amount":20
-                    },
-                    {
-                    "name":"$10 Off Coupon",
-                    "amount":10
-                    }
-                ],
+                "adjustments":[],
                 "elements":[
                     {
                     "title":"Classic White T-Shirt",
                     "subtitle":"100% Soft and Luxurious Cotton",
                     "quantity":2,
                     "price":50,
-                    "currency":"USD",
+                    "currency":"PEN",
                     "image_url":"http://petersapparel.parseapp.com/img/whiteshirt.png"
                     },
                     {
@@ -416,7 +404,7 @@ function getRecibo(){
                     "subtitle":"100% Soft and Luxurious Cotton",
                     "quantity":1,
                     "price":25,
-                    "currency":"USD",
+                    "currency":"PEN",
                     "image_url":"http://petersapparel.parseapp.com/img/grayshirt.png"
                     }
                 ]
