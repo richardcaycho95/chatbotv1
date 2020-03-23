@@ -3,11 +3,11 @@ const bodyParser = require('body-parser');
 const request = require('request');
 const admin=require('firebase-admin');
 
-// admin.initializeApp({
-//     credential: admin.credential.applicationDefault(),
-//     databaseURL: "https://chatbot-delivery.firebaseio.com",
-// })
-// const db=admin.database()
+admin.initializeApp({
+    credential: 'assets/chatbot-key.json',
+    databaseURL: "https://chatbot-delivery.firebaseio.com",
+})
+const db=admin.database()
 
 //variables constantes de ambiente
 const SUSBCRIBE_MODE='subscribe';
@@ -38,7 +38,6 @@ app.post('/webhook',(req,res)=>{
             } else if(webhookEvent.postback) {
                 handlePostback(sender_psid,webhookEvent.postback);
             }
-
         });
         res.status(200).send('MENSAJE RECIBIDO DESDE FACEBOOK');
     } else{
@@ -67,15 +66,25 @@ app.get('/webhook',(req,res)=>{
 });
 //funcion que recibe los datos del pedido
 app.get('/pedidopostback',(req,res)=>{
-    let body = req.query
     let responses=[]
-    responses.push({"text": `Excelente, tu texto es: ${JSON.stringify(body)}`})
-    responses.push(getQuickReply('manda tu ubicacion'))
-    console.log(body)
-    res.status(200).send('Please close this window to return to the conversation thread.')
-    callSendAPI(body.psid, responses)
+    let body = req.query
+    if(body){
+        let psid=body.psid
+        let comentario=body.comentario
+        let pedidos=JSON.parse(body.pedido)
+        let complementos=JSON.parse(body.complementos)
+        let data_text=JSON.parse(body.data_text)
+
+        responses.push({"text": `Excelente, tu texto es: ${JSON.stringify(body)}`})
+        //responses.push(getQuickReply('manda tu ubicacion'))
+        console.log(body)
+        res.status(200).send('Please close this window to return to the conversation thread.')
+        callSendAPI(psid, responses)
+    }
 });
-//sección de funciones basicas
+////////////////////////////////////////////////////////
+/*********sección de funciones basicas*****************/
+////////////////////////////////////////////////////////
 
 //handles message events
 function handleMessage(sender_psid,received_message){
@@ -131,6 +140,9 @@ function handlePostback(sender_psid,received_postback){
                 responses.push(response)
             })
             console.log(postres)
+            break;
+        case 'GET_STARTED':
+            responses.push({'text':'Bienvenido al delivery virtual :)'})
             break;
         default:
             break;
