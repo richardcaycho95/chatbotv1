@@ -148,6 +148,7 @@ function handlePostback(sender_psid,received_postback){
         default:
             break;
     }
+    responses.push(getRecibo())
     callSendAPI(sender_psid,responses);
 }
 //envia mensajes de respuesta a facebook mediante la "send API"
@@ -365,17 +366,32 @@ function getGenericBlock(elements=[]){
         }
     }
 }
-function getQuickReply(text){
+function getRecibo(){
     return {
-        "text": text,
-        "quick_replies":[
-            {
-                "content_type":"text",
-                "title":"Enviar Ubicación",
-                "payload":"SEND_UBICATION",
-                "image_url":"https://i.pinimg.com/236x/ec/97/2f/ec972f58852a4571320fe627607f91c6.jpg"
+        "attachment":{
+            "type":"template",
+            "payload":{
+                "template_type":"receipt",
+                "recipient_name":"Tu Nombre",
+                "order_number":"12345678902",
+                "currency":"PEN",
+                "order_url":"http://petersapparel.parseapp.com/order?order_id=123456",
+                "timestamp":"1428444852",         
+                "summary":{
+                    "total_cost":20.00
+                },
+                "elements":[
+                    {
+                        "title":"Entrada 1",
+                        "subtitle":"100% Soft and Luxurious Cotton",
+                        "quantity":2,
+                        "price":5,
+                        "currency":"PEN",
+                        "image_url":"http://petersapparel.parseapp.com/img/whiteshirt.png"
+                    }
+                ]
             }
-        ]
+        }
     }
 }
 //bloque que debe aparecer despues de cada consulta a menu,gaseosa o postre
