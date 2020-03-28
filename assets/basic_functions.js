@@ -7,6 +7,8 @@ module.exports={
         temp_return.push(temp[prop])
       }
     }
+    temp_return['key']=snapshot.key
     return temp_return
-  }
+  },
+  GMAP_API_KEY='AIzaSyDxIn9qXbWD1lvSzHCiphSNw7_jiPK6obw'
 }

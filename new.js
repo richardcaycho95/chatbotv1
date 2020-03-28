@@ -145,7 +145,7 @@ function handlePostback(sender_psid,received_postback){
             console.log(postres)
             break;
         case 'RP_DIRECCIONES':
-            getDireccionesByUsuario(sender_psid)
+            responses.push(getDireccionesByUsuario(sender_psid))
             break;
         case 'GET_STARTED':
             responses.push({'text':'Bienvenido al delivery virtual :)'})
@@ -153,7 +153,6 @@ function handlePostback(sender_psid,received_postback){
         default:
             break;
     }
-    responses.push(getRecibo())
     callSendAPI(sender_psid,responses);
 }
 //envia mensajes de respuesta a facebook mediante la "send API"
@@ -342,10 +341,22 @@ function getDireccionesByUsuario(psid){
     db.ref('usuarios').on('value',snapshot => {
         usuarios=Base.fillInFirebase(snapshot)
         //buscando psid del usuario
-        usuarios.map(element =>{
-            console.log(JSON.stringify(element))
-            if(element.psid==psid){ //si el usuario está registrado en fb
-
+        usuarios.map(usuario =>{
+            console.log(JSON.stringify(usuario))
+            if(usuario.psid==psid){ //si el usuario está registrado en firebase
+                let elements=[]
+                db.ref(`usuarios/${usuario.key}/ubicaciones`).on('value',snapshot =>{
+                    let ubicaciones = Base.fillInFirebase(snapshot)
+                    ubicaciones.map(ubicacion =>{
+                        elements.push({
+                            "title":"Titulo",
+                            "image_url":`https://maps.googleapis.com/maps/api/staticmap?center=${ubicacion.latitud},${ubicacion.longitud}&zoom=16&size=600x300&maptype=roadmap&markers=color:blue%7Clabel:S%7C${ubicacion.latitud},${ubicacion.longitud}&key=${Base.GMAP_API_KEY}`,
+                            "subtitle":ubicacion.direccion,
+                            "buttons":[]
+                        })
+                    })
+                    return getGenericBlock(elements)
+                })
             }
         })
     })
