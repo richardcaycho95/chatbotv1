@@ -355,8 +355,8 @@ async function getDireccionesByUsuario(psid){
             return false //termina el bucle
         }
     })
-    if(usuario_existe){ //si el usuario esta registrado en firebase(por su psid)
-        let ubicaciones=await db.ref(`usuarios/${usuario.key}/ubicaciones`).on('value',snapshot =>{
+    if(usuario_selected.existe){ //si el usuario esta registrado en firebase(por su psid)
+        let ubicaciones=await db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).on('value',snapshot =>{
             return Base.fillInFirebase(snapshot)
         })
         ubicaciones.map(ubicacion =>{
