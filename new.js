@@ -145,7 +145,8 @@ function handlePostback(sender_psid,received_postback){
             console.log(postres)
             break;
         case 'RP_DIRECCIONES':
-            console.log(`respuesta: ${JSON.stringify(getDireccionesByUsuario(sender_psid))}`)
+            let tempd= await getDireccionesByUsuario(sender_psid)
+            console.log(`respuesta: ${JSON.stringify(tempd)}`)
             //responses.push(getDireccionesByUsuario(sender_psid))
             break;
         case 'GET_STARTED':
