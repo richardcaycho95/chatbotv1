@@ -11,7 +11,7 @@ admin.initializeApp({
 })
 const db=admin.database()
 
-import * as Base from 'basic_functions'
+import * as Base from 'assets/basic_functions'
 
 //variables constantes de ambiente
 const SUSBCRIBE_MODE='subscribe';
@@ -201,7 +201,6 @@ function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene e
             }
         })
     })
-    
 }
 function getBloqueInicial(){
     //data:es un bloque,un mensaje y contiene elementos(cards)
