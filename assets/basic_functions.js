@@ -1,7 +1,7 @@
 module.exports={
   fillInFirebase: function(snapshot){
-    console.log(`snapshot: ${JSON.stringify(snapshot)}`)
-    console.log(`snapshot en object values: ${JSON.stringify(Object.values(snapshot))}`)
+    console.log(`snapshot: ${JSON.stringify(snapshot.val())}`)
+    console.log(`snapshot en object values: ${JSON.stringify(Object.values(snapshot.val()))}`)
     let temp=snapshot.val()
     let temp_return=[]
     for (const prop in temp) {
