@@ -340,29 +340,36 @@ function getPostres(){
     return responses;
 }
 async function getDireccionesByUsuario(psid){
-    let usuarios
-    db.ref('usuarios').on('value',snapshot => {
-        usuarios=Base.fillInFirebase(snapshot)
-        //buscando psid del usuario
-        usuarios.map(usuario =>{
-            console.log(`el usuario: ${JSON.stringify(usuario)}`)
-            if(usuario.psid==psid){ //si el usuario está registrado en firebase
-                db.ref(`usuarios/${usuario.key}/ubicaciones`).on('value',snapshot =>{
-                    let ubicaciones = Base.fillInFirebase(snapshot)
-                    let elements=[]
-                    ubicaciones.map(ubicacion =>{
-                        elements.push({
-                            "title":"Titulo",
-                            "image_url":`https://maps.googleapis.com/maps/api/staticmap?center=${ubicacion.latitud},${ubicacion.longitud}&zoom=16&size=600x300&maptype=roadmap&markers=color:blue%7Clabel:S%7C${ubicacion.latitud},${ubicacion.longitud}&key=${Base.GMAP_API_KEY}`,
-                            "subtitle":ubicacion.direccion,
-                            "buttons":[]
-                        })
-                    })
-                    return getGenericBlock(elements)
-                })
-            }
-        })
+    let usuarios = await db.ref('usuarios').on('value',snapshot => {
+        return Base.fillInFirebase(snapshot)
     })
+    
+    let elements=[] // elementos del bloque
+    let usuario_selected={existe:false,key:null}
+    //buscando psid del usuario
+    usuarios.map(usuario =>{
+        console.log(`el usuario: ${JSON.stringify(usuario)}`)
+        if(usuario.psid==psid){ //si el usuario está registrado en firebase
+            usuario_selected.existe=true
+            usuario_selected.key=usuario.key
+            return false //termina el bucle
+        }
+    })
+    if(usuario_existe){ //si el usuario esta registrado en firebase(por su psid)
+        let ubicaciones=await db.ref(`usuarios/${usuario.key}/ubicaciones`).on('value',snapshot =>{
+            return Base.fillInFirebase(snapshot)
+        })
+        ubicaciones.map(ubicacion =>{
+            elements.push({
+                "title":"Titulo",
+                "image_url":`https://maps.googleapis.com/maps/api/staticmap?center=${ubicacion.latitud},${ubicacion.longitud}&zoom=16&size=600x300&maptype=roadmap&markers=color:blue%7Clabel:S%7C${ubicacion.latitud},${ubicacion.longitud}&key=${Base.GMAP_API_KEY}`,
+                "subtitle":ubicacion.direccion,
+                "buttons":[]
+            })
+        })
+        console.log(`elements del bloque: ${JSON.stringify(elements)}`)
+        return getGenericBlock(elements)
+    }
 }
 /********************************************
  * FUNCIONES BASES PARA LA CREACION DE FORMATOS JSON
