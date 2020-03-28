@@ -105,7 +105,7 @@ function handleMessage(sender_psid,received_message){
     }
 }
 //handles messaging_postback events
-function handlePostback(sender_psid,received_postback){
+async function handlePostback(sender_psid,received_postback){
     const payload=received_postback.payload;
 
     let responses = [];
