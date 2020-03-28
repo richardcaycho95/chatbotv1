@@ -338,7 +338,7 @@ function getPostres(){
     responses.push(getAccion(POSTRE))
     return responses;
 }
-function getDireccionesByUsuario(psid){
+async function getDireccionesByUsuario(psid){
     let usuarios
     db.ref('usuarios').on('value',snapshot => {
         usuarios=Base.fillInFirebase(snapshot)
