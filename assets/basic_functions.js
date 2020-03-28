@@ -7,6 +7,7 @@ module.exports={
       item.key=element.key
       temp_return.push(item)
     })
+    console.log(JSON.stringify(temp_return))
     //return Object.values(snapshot.val())
     // let temp=snapshot.val()
     // let temp_return=[]
