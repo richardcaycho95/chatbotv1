@@ -1,6 +1,6 @@
 module.exports={
   fillInFirebase: function(snapshot){
-    console.log(JSON.stringify(snapshot))
+    console.log(`snapshot: ${JSON.stringify(snapshot)}`)
     let temp=snapshot.val()
     let temp_return=[]
     for (const prop in temp) {

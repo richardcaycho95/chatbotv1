@@ -342,7 +342,7 @@ function getDireccionesByUsuario(psid){
         usuarios=Base.fillInFirebase(snapshot)
         //buscando psid del usuario
         usuarios.map(usuario =>{
-            console.log(JSON.stringify(usuario))
+            console.log(`el usuario: ${JSON.stringify(usuario)}`)
             if(usuario.psid==psid){ //si el usuario está registrado en firebase
                 let elements=[]
                 db.ref(`usuarios/${usuario.key}/ubicaciones`).on('value',snapshot =>{
