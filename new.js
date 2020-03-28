@@ -359,7 +359,7 @@ async function getDireccionesByUsuario(psid){
         ubicaciones.map(ubicacion =>{
             elements.push({
                 "title":"Titulo",
-                "image_url":`https://maps.googleapis.com/maps/api/staticmap?center=${ubicacion.latitud},${ubicacion.longitud}&zoom=16&size=600x300&maptype=roadmap&markers=color:blue%7Clabel:S%7C${ubicacion.latitud},${ubicacion.longitud}&key=${Base.GMAP_API_KEY}`,
+                "image_url":`https://maps.googleapis.com/maps/api/staticmap?center=${ubicacion.latitud},${ubicacion.longitud}&zoom=17&size=570x300&maptype=roadmap&markers=color:blue%7Clabel:S%7C${ubicacion.latitud},${ubicacion.longitud}&key=${Base.GMAP_API_KEY}`,
                 "subtitle":ubicacion.direccion,
                 "buttons":[
                     {'type':'postback','title':'SELECCIONAR','payload':'ubicanos'}
