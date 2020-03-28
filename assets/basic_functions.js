@@ -1,4 +1,5 @@
-export function fillInFirebase(snapshot){
+module.exports={
+  fillInFirebase: function(snapshot){
     let temp=snapshot.val()
     let temp_return=[]
     for (const prop in temp) {
@@ -7,4 +8,5 @@ export function fillInFirebase(snapshot){
       }
     }
     return temp_return
+  }
 }
