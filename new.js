@@ -11,6 +11,8 @@ admin.initializeApp({
 })
 const db=admin.database()
 
+import * as Base from 'basic_functions'
+
 //variables constantes de ambiente
 const SUSBCRIBE_MODE='subscribe';
 const PAGE_ACCESS_TOKEN=process.env.PAGE_ACCESS_TOKEN;
@@ -117,7 +119,7 @@ function handlePostback(sender_psid,received_postback){
         case 'home':
             responses.push(getBloqueInicial())
             break;
-        case 'menu_dia':
+        case 'MENU_DIA':
             //mensaje donde se detalla el menú del dia y se pregunta sobre la acción a realizar
             //se debe recorrer el bucle para leer los formatos json
             getMenuDia().forEach((response)=>{
@@ -141,6 +143,9 @@ function handlePostback(sender_psid,received_postback){
                 responses.push(response)
             })
             console.log(postres)
+            break;
+        case 'RP_DIRECCIONES':
+            getDireccionesByUsuario(sender_psid)
             break;
         case 'GET_STARTED':
             responses.push({'text':'Bienvenido al delivery virtual :)'})
@@ -189,8 +194,6 @@ function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene e
                 body=JSON.parse(body)
                 console.log('Obteniendo nombre de usuario')
                 console.log(body)
-                console.log(typeof(body))
-                console.log(`El nombre es ${body.first_name}`)
                 resolve({'text': `Hola ${body.first_name} 😄\nDesliza para que veas nuestras opciones 👇👇👇`})
             } else{
                 console.error('No se puede responder')
@@ -205,12 +208,13 @@ function getBloqueInicial(){
     let data=[
         {
             'buttons':[
-                {
-                    'type':'web_url','url':'https://sabor-peruano-app.herokuapp.com',
-                    'title':'REALIZAR PEDIDO 🛒','webview_height_ratio':'tall',
-                    'messenger_extensions':'true','fallback_url':'https://sabor-peruano-app.herokuapp.com'
-                },
-                {'type':'postback','title':'VER MENÚ DEL DIA 🍛','payload':'menu_dia'}
+                // {
+                //     'type':'web_url','url':'https://sabor-peruano-app.herokuapp.com',
+                //     'title':'REALIZAR PEDIDO 🛒','webview_height_ratio':'tall',
+                //     'messenger_extensions':'true','fallback_url':'https://sabor-peruano-app.herokuapp.com'
+                // },
+                {'type':'postback','title':'REALIZAR PEDIDO 🛒','payload':'RP_DIRECCIONES'},
+                {'type':'postback','title':'VER MENÚ DEL DIA 🍛','payload':'MENU_DIA'}
             ],
             'empresa':'Restaurante Sabor Peruano',
             'descripcion': 'Ahora puedes realizar tus pedidos mediante nuestro asistente virtual 🤖 😉',
@@ -334,6 +338,19 @@ function getPostres(){
     responses.push(getAccion(POSTRE))
     return responses;
 }
+function getDireccionesByUsuario(psid){
+    let usuarios
+    db.ref('usuarios').on('value',snapshot => {
+        usuarios=Base.fillInFirebase(snapshot)
+        //buscando psid del usuario
+        usuarios.map(element =>{
+            console.log(JSON.stringify(element))
+            if(element.psid==psid){ //si el usuario está registrado en fb
+
+            }
+        })
+    })
+}
 /********************************************
  * FUNCIONES BASES PARA LA CREACION DE FORMATOS JSON
  * ****************************************** */ 
@@ -362,52 +379,6 @@ function getGenericBlock(elements=[]){
             "payload":{
                 "template_type":"generic",
                 "elements":elements
-            }
-        }
-    }
-}
-function getRecibo(){
-    return {
-        "attachment":{
-            "type":"template",
-            "payload":{
-                "template_type":"receipt",
-                "recipient_name":"Stephane Crozatier",
-                "order_number":"12345678902",
-                "currency":"PEN",
-                "payment_method":"Por Pagar",
-                "order_url":"http://petersapparel.parseapp.com/order?order_id=123456",
-                "timestamp":"1428444852",
-                "address":{
-                    "street_1":"Avenida norte sur",
-                    "street_2":"",
-                    "city":"Carabayllo",
-                    "postal_code":"",
-                    "state":"LIMA",
-                    "country":"PE"
-                },
-                "summary":{
-                    "total_cost":20.00
-                },
-                "adjustments":[],
-                "elements":[
-                    {
-                    "title":"Entrada:",
-                    "subtitle":"Caldo de gallina (1) \nCeviche (2)",
-                    "quantity":0,
-                    "price":0,
-                    "currency":"PEN",
-                    "image_url":"http://petersapparel.parseapp.com/img/whiteshirt.png"
-                    },
-                    {
-                    "title":"Segundo:",
-                    "subtitle":"Caldo de gallina (1) \nCeviche (2)",
-                    "quantity":0,
-                    "price":0,
-                    "currency":"PEN",
-                    "image_url":"http://petersapparel.parseapp.com/img/whiteshirt.png"
-                    },
-                ]
             }
         }
     }
