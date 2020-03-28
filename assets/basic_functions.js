@@ -1,6 +1,7 @@
 module.exports={
   fillInFirebase: function(snapshot){
     console.log(`snapshot: ${JSON.stringify(snapshot)}`)
+    console.log(`snapshot en object values: ${JSON.stringify(Object.values(snapshot))}`)
     let temp=snapshot.val()
     let temp_return=[]
     for (const prop in temp) {
@@ -9,6 +10,7 @@ module.exports={
       }
     }
     //temp_return['key']=snapshot.key
+    console.log(`snapshot en array: ${JSON.stringify(temp_return)}`)
     return temp_return
   },
   GMAP_API_KEY:'AIzaSyDxIn9qXbWD1lvSzHCiphSNw7_jiPK6obw'
