@@ -146,9 +146,7 @@ async function handlePostback(sender_psid,received_postback){
             break;
         case 'RP_DIRECCIONES':
             let tempd= await getDireccionesByUsuario(sender_psid)
-            console.log(`respuesta: ${JSON.stringify(tempd)}`)
             responses.push(tempd)
-            callSendAPI(sender_psid,responses);
             break;
         case 'GET_STARTED':
             responses.push({'text':'Bienvenido al delivery virtual :)'})
@@ -156,7 +154,7 @@ async function handlePostback(sender_psid,received_postback){
         default:
             break;
     }
-    // callSendAPI(sender_psid,responses);
+    callSendAPI(sender_psid,responses)
 }
 //envia mensajes de respuesta a facebook mediante la "send API"
 //responses:array con los mensajes que se enviará
