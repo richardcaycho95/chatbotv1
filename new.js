@@ -147,7 +147,7 @@ async function handlePostback(sender_psid,received_postback){
         case 'RP_DIRECCIONES':
             let tempd= await getDireccionesByUsuario(sender_psid)
             console.log(`respuesta: ${JSON.stringify(tempd)}`)
-            responses.push(getDireccionesByUsuario(sender_psid))
+            responses.push(tempd)
             callSendAPI(sender_psid,responses);
             break;
         case 'GET_STARTED':
