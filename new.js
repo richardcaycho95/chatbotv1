@@ -11,7 +11,7 @@ admin.initializeApp({
 })
 const db=admin.database()
 
-const Base = require('./assets/basic_functions.js')
+const Base = require('./assets/basic_functions.mjs')
 
 //variables constantes de ambiente
 const SUSBCRIBE_MODE='subscribe';
