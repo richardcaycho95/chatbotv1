@@ -147,8 +147,7 @@ async function handlePostback(sender_psid,received_postback){
         case 'RP_DIRECCIONES':
             let tempd= await getDireccionesByUsuario(sender_psid)
             console.log(`respuesta: ${JSON.stringify(tempd)}`)
-            //responses.push(getDireccionesByUsuario(sender_psid))
-            callSendAPI(sender_psid,responses)
+            responses.push(getDireccionesByUsuario(sender_psid))
             break;
         case 'GET_STARTED':
             responses.push({'text':'Bienvenido al delivery virtual :)'})
@@ -156,7 +155,7 @@ async function handlePostback(sender_psid,received_postback){
         default:
             break;
     }
-    // callSendAPI(sender_psid,responses);
+    callSendAPI(sender_psid,responses);
 }
 //envia mensajes de respuesta a facebook mediante la "send API"
 //responses:array con los mensajes que se enviará
@@ -363,7 +362,9 @@ async function getDireccionesByUsuario(psid){
                 "title":"Titulo",
                 "image_url":`https://maps.googleapis.com/maps/api/staticmap?center=${ubicacion.latitud},${ubicacion.longitud}&zoom=16&size=600x300&maptype=roadmap&markers=color:blue%7Clabel:S%7C${ubicacion.latitud},${ubicacion.longitud}&key=${Base.GMAP_API_KEY}`,
                 "subtitle":ubicacion.direccion,
-                "buttons":[]
+                "buttons":[
+                    {'type':'postback','title':'SELECCIONAR','payload':'ubicanos'}
+                ],
             })
         })
         console.log(`elements del bloque: ${JSON.stringify(elements)}`)
