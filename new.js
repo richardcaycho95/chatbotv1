@@ -11,7 +11,7 @@ admin.initializeApp({
 })
 const db=admin.database()
 
-import * as Base from './assets/basic_functions.js'
+import * as Base from './assets/basic_functions.mjs'
 
 //variables constantes de ambiente
 const SUSBCRIBE_MODE='subscribe';
