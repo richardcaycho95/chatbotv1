@@ -145,7 +145,8 @@ function handlePostback(sender_psid,received_postback){
             console.log(postres)
             break;
         case 'RP_DIRECCIONES':
-            responses.push(getDireccionesByUsuario(sender_psid))
+            console.log(`respuesta: ${JSON.stringify(getDireccionesByUsuario(sender_psid))}`)
+            //responses.push(getDireccionesByUsuario(sender_psid))
             break;
         case 'GET_STARTED':
             responses.push({'text':'Bienvenido al delivery virtual :)'})
@@ -344,9 +345,9 @@ function getDireccionesByUsuario(psid){
         usuarios.map(usuario =>{
             console.log(`el usuario: ${JSON.stringify(usuario)}`)
             if(usuario.psid==psid){ //si el usuario está registrado en firebase
-                let elements=[]
                 db.ref(`usuarios/${usuario.key}/ubicaciones`).on('value',snapshot =>{
                     let ubicaciones = Base.fillInFirebase(snapshot)
+                    let elements=[]
                     ubicaciones.map(ubicacion =>{
                         elements.push({
                             "title":"Titulo",
