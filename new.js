@@ -342,7 +342,7 @@ function getPostres(){
 async function getDireccionesByUsuario(psid){
     let snapshot = await db.ref('usuarios').once('value')
     console.log(`snp en main: ${JSON.stringify(snapshot)}`)
-    let usuarios = fillInFirebase(snapshot)
+    let usuarios = Base.fillInFirebase(snapshot)
     
     let elements=[] // elementos del bloque
     let usuario_selected={existe:false,key:null}
