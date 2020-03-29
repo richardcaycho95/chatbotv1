@@ -97,10 +97,9 @@ function handleMessage(sender_psid,received_message){
 
     if (received_message.text) {
         getSaludo(sender_psid).then(response =>{
-            console.log(response)
-            responses.push(response) //creando el saludo
-            responses.push(getBloqueInicial()) //creando bloque inicial
-            callSendAPI(sender_psid,responses);
+            callSendAPI(sender_psid,response).then(r =>{ //creando el saludo
+                callSendAPI(sender_psid,getBloqueInicial()) //creando bloque inicial
+            })
         })
         //console.log(getBloqueInicial().attachment.payload)
     }
@@ -159,17 +158,15 @@ async function handlePostback(sender_psid,received_postback){
 }
 //envia mensajes de respuesta a facebook mediante la "send API"
 //responses:array con los mensajes que se enviará
-async function callSendAPI(sender_psid,responses,messaging_type='RESPONSE'){ 
-    console.log('psid: '+sender_psid)
-    console.log(`responses en callSendAPI: ${JSON.stringify(responses)}`)
-    await responses.reduce(async (promise,response) =>{
-        requestBody = {
-            'recipient':{ 'id': sender_psid },
-            'messaging_type': messaging_type,
-            'message': response
-        }
-        await promise
-        const temp_response= await request({
+async function callSendAPI(sender_psid,response,messaging_type='RESPONSE'){
+    console.log(`response en callSendAPI: ${JSON.stringify(response)}`)
+    requestBody = {
+        'recipient':{ 'id': sender_psid },
+        'messaging_type': messaging_type,
+        'message': response
+    }
+    return new Promise((resolve,reject)=>{
+        request({
             'uri': 'https://graph.facebook.com/v6.0/me/messages',
             'qs':{ 'access_token': process.env.PAGE_ACCESS_TOKEN },
             'method': 'POST',
@@ -177,14 +174,14 @@ async function callSendAPI(sender_psid,responses,messaging_type='RESPONSE'){
         },(err,res,body)=>{
             if (!err) {
                 console.log(`Mensaje respondido con el bot, response ${JSON.stringify(response)}`)
-                return true
+                resolve()
             } else{
                 console.error('No se puede responder')
-                return false
+                reject()
             }
         })
-        console.log(temp_response)
-    },Promise.resolve())
+    })
+}
     // responses.forEach(async response=>{
     //     requestBody = {
     //         'recipient':{ 'id': sender_psid },
@@ -204,7 +201,6 @@ async function callSendAPI(sender_psid,responses,messaging_type='RESPONSE'){
     //         }
     //     })
     // })
-}
 //end
 
 function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene el saludo con el nombre
