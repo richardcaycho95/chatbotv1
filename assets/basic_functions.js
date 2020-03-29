@@ -20,6 +20,8 @@ module.exports={
     // console.log(`snapshot en array: ${JSON.stringify(temp_return)}`)
     return temp_return
   },
-  GMAP_API_KEY:'AIzaSyDxIn9qXbWD1lvSzHCiphSNw7_jiPK6obw',
-  WEBHOOK_URL:'https://vizarro.herokuapp.com'
+  GMAP_API_KEY: 'AIzaSyDxIn9qXbWD1lvSzHCiphSNw7_jiPK6obw',
+  WEBHOOK_URL: 'https://vizarro.herokuapp.com',
+  FALLBACK_URL: 'https://sabor-peruano-app.herokuapp.com/fallback',
+  WEB_URL: 'https://sabor-peruano-app.herokuapp.com'
 }

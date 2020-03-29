@@ -146,7 +146,7 @@ async function handlePostback(sender_psid,received_postback){
             getDireccionesByUsuario(sender_psid)
             break;
         case 'GET_STARTED':
-            responses.push({'text':'Bienvenido al delivery virtual :)'})
+            callSendAPI(sender_psid,{'text':'Bienvenido al delivery virtual :)'})
             break;
         default:
             break;
@@ -368,7 +368,7 @@ async function getDireccionesByUsuario(psid){
             return false //termina el bucle
         }
     })
-    let add_location = getAddLocationCard() //card para agregar dirección del usuario
+    let add_location = getAddLocationCard(psid) //card para agregar dirección del usuario
     let elements=[] // elementos del bloque
     if(usuario_selected.existe){ //si el usuario esta registrado en firebase(por su psid)
         let snapshot = await db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).once('value')
@@ -416,14 +416,19 @@ function getButtons(buttons){//buttons: array que debe tener de forma obligatori
     })
     return JSON.stringify(temp);
 }
-function getAddLocationCard(){
+function getAddLocationCard(psid){
     return {
         "title":'Añade una ubicación',
         "image_url":`${Base.WEBHOOK_URL}/add_location.jpg`,
         "subtitle":"",
         "buttons":[
-            {'type':'postback','title':'AGREGAR','payload':'AGREGAR_UBICACION'}
-        ],
+            {
+                'type':'web_url','webview_height_ratio':'tall',
+                'url':`${Base.WEB_URL}/add_location?psid=${psid}`,
+                'title':'AGREGAR','messenger_extensions':'true',
+                'fallback_url':Base.FALLBACK_URL
+            }
+        ]
     }
 }
 //devuelve formato json para crear mensaje de conjuntos de bloque
