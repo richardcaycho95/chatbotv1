@@ -358,16 +358,22 @@ async function getDireccionesByUsuario(psid){
         let ubicaciones = Base.fillInFirebase(snapshot)
         ubicaciones.map(ubicacion =>{
             elements.push({
-                "title":"Titulo",
+                "title":ubicacion.direccion,
                 "image_url":`https://maps.googleapis.com/maps/api/staticmap?center=${ubicacion.latitud},${ubicacion.longitud}&zoom=18&size=570x300&maptype=roadmap&markers=color:red%7Clabel:AQUI%7C${ubicacion.latitud},${ubicacion.longitud}&key=${Base.GMAP_API_KEY}`,
-                "subtitle":ubicacion.direccion,
+                "subtitle":"",
                 "buttons":[
                     {'type':'postback','title':'SELECCIONAR','payload':'ubicanos'}
                 ],
             })
         })
+        elements.push(getAddLocationCard()) //card para agregar dirección del usuario
         console.log(`elements del bloque: ${JSON.stringify(elements)}`)
-        return getGenericBlock(elements)
+        let temp_responses=[]
+        temp_responses.push({'text':'¿Donde te enviamos hoy tu pedido? 🛵'})
+        temp_responses.push(getGenericBlock(elements))
+        return temp_responses
+    } else{
+
     }
 }
 /********************************************
@@ -388,6 +394,16 @@ function getButtons(buttons){//buttons: array que debe tener de forma obligatori
         temp.push(format)
     })
     return JSON.stringify(temp);
+}
+function getAddLocationCard(){
+    return {
+        "title":'Añade una dirección',
+        "image_url":`https://maps.googleapis.com/maps/api/staticmap?center=${ubicacion.latitud},${ubicacion.longitud}&zoom=18&size=570x300&maptype=roadmap&markers=color:red%7Clabel:AQUI%7C${ubicacion.latitud},${ubicacion.longitud}&key=${Base.GMAP_API_KEY}`,
+        "subtitle":"",
+        "buttons":[
+            {'type':'postback','title':'SELECCIONAR','payload':'ubicanos'}
+        ],
+    }
 }
 //devuelve formato json para crear mensaje de conjuntos de bloque
 //elements: array donde se tiene los elementos
@@ -427,6 +443,7 @@ function getAccion(tipo=''){
 app.get('/',(req,res)=>{
     res.status(200).send('main page of webhook...\n preferencia: '+req.query.preferencia);
 });
+app.use(express.static(__dirname + '/assets/img'));// you can access image 
 
 //lanzamos el webhook
 app.listen(process.env.PORT || 5000,()=>{
