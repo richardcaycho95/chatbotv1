@@ -163,6 +163,11 @@ async function callSendAPI(sender_psid,responses,messaging_type='RESPONSE'){
     console.log('psid: '+sender_psid)
     console.log(`responses en callSendAPI: ${JSON.stringify(responses)}`)
     await responses.reduce(async (promise,response) =>{
+        requestBody = {
+            'recipient':{ 'id': sender_psid },
+            'messaging_type': messaging_type,
+            'message': response
+        }
         await promise
         const temp_response= await request({
             'uri': 'https://graph.facebook.com/v6.0/me/messages',
