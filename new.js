@@ -145,8 +145,8 @@ async function handlePostback(sender_psid,received_postback){
             console.log(postres)
             break;
         case 'RP_DIRECCIONES':
-            let tempd= await getDireccionesByUsuario(sender_psid)
-            responses.push(tempd)
+            let res= await getDireccionesByUsuario(sender_psid)
+            res.map(response => responses.push(response))
             break;
         case 'GET_STARTED':
             responses.push({'text':'Bienvenido al delivery virtual :)'})
