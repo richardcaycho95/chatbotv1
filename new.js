@@ -143,8 +143,7 @@ async function handlePostback(sender_psid,received_postback){
             console.log(postres)
             break;
         case 'RP_DIRECCIONES':
-            let res= await getDireccionesByUsuario(sender_psid)
-            res.map(response => responses.push(response))
+            getDireccionesByUsuario(sender_psid)
             break;
         case 'GET_STARTED':
             responses.push({'text':'Bienvenido al delivery virtual :)'})
@@ -359,7 +358,6 @@ async function getDireccionesByUsuario(psid){
     console.log(`snp en main: ${JSON.stringify(snapshot)}`)
     let usuarios = Base.fillInFirebase(snapshot)
     
-    let elements=[] // elementos del bloque
     let usuario_selected={existe:false,key:null}
     //buscando psid del usuario
     usuarios.map(usuario =>{
@@ -370,6 +368,8 @@ async function getDireccionesByUsuario(psid){
             return false //termina el bucle
         }
     })
+    let add_location = getAddLocationCard() //card para agregar dirección del usuario
+    let elements=[] // elementos del bloque
     if(usuario_selected.existe){ //si el usuario esta registrado en firebase(por su psid)
         let snapshot = await db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).once('value')
         let ubicaciones = Base.fillInFirebase(snapshot)
@@ -383,14 +383,18 @@ async function getDireccionesByUsuario(psid){
                 ],
             })
         })
-        elements.push(getAddLocationCard()) //card para agregar dirección del usuario
+        elements.push(add_location)
         //console.log(`elements del bloque: ${JSON.stringify(elements)}`)
         text={'text':'¿Donde te enviamos hoy tu pedido? 🛵'}
-        callSendAPI(psid,text).then( response =>{
+        callSendAPI(psid,text).then( _ =>{
             callSendAPI(psid,getGenericBlock(elements))
         })
     } else{
-
+        elements.push(add_location)
+        text={'text':'No tienes guardado ninguna dirección, agrega para poder seguir con el pedido'}
+        callSendAPI(psid,text).then( _ =>{
+            callSendAPI(psid,getGenericBlock(elements))
+        })
     }
 }
 /********************************************
