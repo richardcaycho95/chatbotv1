@@ -397,11 +397,11 @@ function getButtons(buttons){//buttons: array que debe tener de forma obligatori
 }
 function getAddLocationCard(){
     return {
-        "title":'Añade una dirección',
-        "image_url":`https://maps.googleapis.com/maps/api/staticmap?center=${ubicacion.latitud},${ubicacion.longitud}&zoom=18&size=570x300&maptype=roadmap&markers=color:red%7Clabel:AQUI%7C${ubicacion.latitud},${ubicacion.longitud}&key=${Base.GMAP_API_KEY}`,
+        "title":'Añade una ubicación',
+        "image_url":`${Base.WEBHOOK_URL}/add_location.jpg`,
         "subtitle":"",
         "buttons":[
-            {'type':'postback','title':'SELECCIONAR','payload':'ubicanos'}
+            {'type':'postback','title':'AGREGAR','payload':'AGREGAR_UBICACION'}
         ],
     }
 }
