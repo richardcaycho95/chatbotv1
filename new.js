@@ -2,6 +2,7 @@ const express= require('express');
 const bodyParser = require('body-parser');
 const request = require('request');
 const path = require('path');
+const rp = require('request-promise');
 
 const admin=require('firebase-admin');
 
@@ -158,29 +159,46 @@ async function handlePostback(sender_psid,received_postback){
 }
 //envia mensajes de respuesta a facebook mediante la "send API"
 //responses:array con los mensajes que se enviará
-function callSendAPI(sender_psid,responses,messaging_type='RESPONSE'){ 
+async function callSendAPI(sender_psid,responses,messaging_type='RESPONSE'){ 
     console.log('psid: '+sender_psid)
     console.log(`responses en callSendAPI: ${JSON.stringify(responses)}`)
-    responses.forEach(async response=>{
-        requestBody = {
-            'recipient':{ 'id': sender_psid },
-            'messaging_type': messaging_type,
-            'message': response
-        }
-
-        await request({
+    await responses.reduce(async (promise,response) =>{
+        await promise
+        const temp_response= await request({
             'uri': 'https://graph.facebook.com/v6.0/me/messages',
             'qs':{ 'access_token': process.env.PAGE_ACCESS_TOKEN },
             'method': 'POST',
             'json': requestBody
         },(err,res,body)=>{
             if (!err) {
-                console.log(`Mensaje respondido con el bot, el response ${JSON.stringify(response)}`);
+                console.log(`Mensaje respondido con el bot, response ${JSON.stringify(response)}`)
+                return true
             } else{
-                console.error('No se puede responder');
+                console.error('No se puede responder')
+                return false
             }
         })
-    })
+        console.log(temp_response)
+    },Promise.resolve())
+    // responses.forEach(async response=>{
+    //     requestBody = {
+    //         'recipient':{ 'id': sender_psid },
+    //         'messaging_type': messaging_type,
+    //         'message': response
+    //     }
+    //     await request({
+    //         'uri': 'https://graph.facebook.com/v6.0/me/messages',
+    //         'qs':{ 'access_token': process.env.PAGE_ACCESS_TOKEN },
+    //         'method': 'POST',
+    //         'json': requestBody
+    //     },(err,res,body)=>{
+    //         if (!err) {
+    //             console.log(`Mensaje respondido con el bot, response ${JSON.stringify(response)}`)
+    //         } else{
+    //             console.error('No se puede responder')
+    //         }
+    //     })
+    // })
 }
 //end
 
