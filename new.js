@@ -117,14 +117,12 @@ async function handlePostback(sender_psid,received_postback){
     //parametros del payload
     switch (payload) {
         case 'home':
-            responses.push(getBloqueInicial())
+            callSendAPI(sender_psid,getBloqueInicial())
             break;
         case 'MENU_DIA':
             //mensaje donde se detalla el menú del dia y se pregunta sobre la acción a realizar
             //se debe recorrer el bucle para leer los formatos json
-            getMenuDia().forEach((response)=>{
-                responses.push(response)
-            })
+            callSendAPI(sender_psid,getMenuDia())
             break;
         case 'complementos':
             //mensaje donde se muestra las gaseosas y se llama a la accción
@@ -154,7 +152,6 @@ async function handlePostback(sender_psid,received_postback){
         default:
             break;
     }
-    callSendAPI(sender_psid,responses)
 }
 //envia mensajes de respuesta a facebook mediante la "send API"
 //responses:array con los mensajes que se enviará
@@ -296,9 +293,10 @@ function getMenuDia(){
     data.segundos.map((segundo)=>{
         segundos_text+=segundo+'\n';
     });
-    responses.push({'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY ${data.dia}😋 \n\nENTRADAS:\n${entradas_text}\nSEGUNDOS:\n${segundos_text}`})
-    responses.push(getAccion(MENU))
-    return responses;
+    // responses.push({'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY ${data.dia}😋 \n\nENTRADAS:\n${entradas_text}\nSEGUNDOS:\n${segundos_text}`})
+    // //responses.push(getAccion(MENU))
+    // return responses;
+    return {'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY ${data.dia}😋 \n\nENTRADAS:\n${entradas_text}\nSEGUNDOS:\n${segundos_text}`}
 }
 function getComplementos(){
     let responses=[]
@@ -386,11 +384,11 @@ async function getDireccionesByUsuario(psid){
             })
         })
         elements.push(getAddLocationCard()) //card para agregar dirección del usuario
-        console.log(`elements del bloque: ${JSON.stringify(elements)}`)
-        let temp_responses=[]
-        temp_responses.push({'text':'¿Donde te enviamos hoy tu pedido? 🛵'})
-        temp_responses.push(getGenericBlock(elements))
-        return temp_responses
+        //console.log(`elements del bloque: ${JSON.stringify(elements)}`)
+        text={'text':'¿Donde te enviamos hoy tu pedido? 🛵'}
+        callSendAPI(psid,text).then( response =>{
+            callSendAPI(psid,getGenericBlock(elements))
+        })
     } else{
 
     }
