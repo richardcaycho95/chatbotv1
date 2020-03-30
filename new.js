@@ -426,8 +426,8 @@ async function getDireccionesByUsuario(psid){
         ubicaciones.map(ubicacion =>{
             elements.push({
                 "title":ubicacion.direccion,
+                "subtitle":ubicacion.referencia,
                 "image_url":`https://maps.googleapis.com/maps/api/staticmap?center=${ubicacion.latitud},${ubicacion.longitud}&zoom=18&size=570x300&maptype=roadmap&markers=color:red%7Clabel:AQUI%7C${ubicacion.latitud},${ubicacion.longitud}&key=${Base.GMAP_API_KEY}`,
-                "subtitle":"",
                 "buttons":[
                     {'type':'postback','title':'SELECCIONAR','payload':'ubicanos'}
                 ],
@@ -436,8 +436,10 @@ async function getDireccionesByUsuario(psid){
         elements.push(add_location)
         //console.log(`elements del bloque: ${JSON.stringify(elements)}`)
         text={'text':'¿Donde te enviamos hoy tu pedido? 🛵'}
-        callSendAPI(psid,text).then( _ =>{
-            callSendAPI(psid,getGenericBlock(elements))
+        callSendAPI(psid,text).then( response =>{
+            callSendAPI(psid,getGenericBlock(elements)).then( _ =>{
+               console.log('finally agregar') 
+            })
         })
     } else{
         elements.push(add_location)
