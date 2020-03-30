@@ -184,10 +184,10 @@ async function callSendAPI(sender_psid,response,messaging_type='RESPONSE'){
         },(err,res,body)=>{
             if (!err) {
                 console.log(`Mensaje respondido con el bot, response ${JSON.stringify(response)}`)
-                resolve()
+                resolve(response)
             } else{
                 console.error('No se puede responder')
-                reject()
+                reject(err)
             }
         })
     })
