@@ -127,9 +127,11 @@ async function handlePostback(sender_psid,received_postback){
     let data;
     let elements;
 
+    let response = payload.split('--')
+
     console.log(`payload postback: ${payload}`);
     //parametros del payload
-    switch (payload) {
+    switch (response[0]) {
         case 'home':
             callSendAPI(sender_psid,getBloqueInicial())
             break;
@@ -158,6 +160,10 @@ async function handlePostback(sender_psid,received_postback){
             break;
         case 'RP_DIRECCIONES':
             getDireccionesByUsuario(sender_psid)
+            break;
+        case 'RP_DIR_SELECCIONADA':
+            let temp_data = response[1] //id del objeto ubicacion, este ha sido seleccionado por el usuario
+            direccionSeleccionada(sender_psid,temp_data)
             break;
         case 'GET_STARTED':
             callSendAPI(sender_psid,{'text':'Bienvenido al delivery virtual :)'})
@@ -429,7 +435,7 @@ async function getDireccionesByUsuario(psid){
                 "subtitle":ubicacion.referencia,
                 "image_url":`https://maps.googleapis.com/maps/api/staticmap?center=${ubicacion.latitud},${ubicacion.longitud}&zoom=18&size=570x300&maptype=roadmap&markers=color:red%7Clabel:AQUI%7C${ubicacion.latitud},${ubicacion.longitud}&key=${Base.GMAP_API_KEY}`,
                 "buttons":[
-                    {'type':'postback','title':'SELECCIONAR','payload':'ubicanos'}
+                    {'type':'postback','title':'SELECCIONAR','payload':`RP_DIR_SELECCIONADA--${ubicacion.key}`}
                 ]
             })
         })
@@ -449,6 +455,20 @@ async function getDireccionesByUsuario(psid){
             callSendAPI(psid,getGenericBlock(elements))
         })
     }
+}
+async function direccionSeleccionada(psid,ubicacion_key){
+    data={
+        'text':'Genial, para seguir con el pedido presiona CONTINUAR ✅',
+        'buttons':[
+            {
+                'type':'web_url','url':`${Base.WEB_URL}?ubicacion=${ubicacion_key}`,
+                'title':'CONTINUAR ✅','webview_height_ratio':'tall',
+                'messenger_extensions':'true','fallback_url':`${Base.WEB_URL}?ubicacion=${ubicacion_key}`
+            },
+            {'type':'postback','title':'CAMBIAR DIRECCION','payload':'home'}
+        ]
+    }
+    callSendAPI(psid,getTemplateButton(data))
 }
 /********************************************
  * FUNCIONES BASES PARA LA CREACION DE FORMATOS JSON
@@ -507,6 +527,9 @@ function getAccion(tipo=''){
             {'type':'postback','title':'VOLVER AL MENÚ PRINCIPAL 🏠','payload':'home'}
         ]
     }
+    return getTemplateButton(data)
+}
+function getTemplateButton(data){ //debe tener los atributos[text(string),buttons(array)]
     return {
         'attachment':{
             "type":"template",
@@ -516,7 +539,7 @@ function getAccion(tipo=''){
               "buttons":getButtons(data.buttons)
             }
           }
-    };
+    }
 }
 //pagina principal
 app.get('/',(req,res)=>{
