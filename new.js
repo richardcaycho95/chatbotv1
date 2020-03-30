@@ -79,11 +79,26 @@ app.get('/pedidopostback',(req,res)=>{
         let pedidos=JSON.parse(body.pedido)
         let complementos=JSON.parse(body.complementos)
 
-        responses.push({"text": `Excelente, tu texto es: ${JSON.stringify(body)}`})
-        //responses.push(getQuickReply('manda tu ubicacion'))
-        console.log(body)
-        res.status(200).send('Please close this window to return to the conversation thread.')
-        callSendAPI(psid, responses)
+        callSendAPI(psid,{"text": `Excelente, tu texto es: ${JSON.stringify(body)}`}).then(_ =>{
+            console.log(body)
+            res.status(200).send('Please close this window to return to the conversation thread.')
+        })
+    }
+});
+app.get('/add_location_postback',(req,res)=>{
+    let responses=[]
+    let body = req.query
+    if(body){
+        let psid=body.psid
+        let latitud=body.latitud
+        let longitud=body.longitud
+        let direccion=body.direccion
+        let referencia=body.referencia
+
+        callSendAPI(psid,{"text": `Excelente, tu texto es: ${JSON.stringify(body)}`}).then(_ =>{
+            console.log(body)
+            res.status(200).send('Please close this window to return to the conversation thread.')
+        })
     }
 });
 ////////////////////////////////////////////////////////
