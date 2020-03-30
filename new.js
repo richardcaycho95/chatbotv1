@@ -437,7 +437,8 @@ async function getDireccionesByUsuario(psid){
         //console.log(`elements del bloque: ${JSON.stringify(elements)}`)
         text={'text':'¿Donde te enviamos hoy tu pedido? 🛵'}
         callSendAPI(psid,text).then( response =>{
-            callSendAPI(psid,getGenericBlock(elements)).then( _ =>{
+            callSendAPI(psid,getGenericBlock(elements)).then( res =>{
+                console.log(res)
                console.log('finally agregar') 
             })
         })
