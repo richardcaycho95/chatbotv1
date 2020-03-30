@@ -425,7 +425,7 @@ async function getDireccionesByUsuario(psid){
         let ubicaciones = Base.fillInFirebase(snapshot)
         ubicaciones.map(ubicacion =>{
             elements.push({
-                "title":ubicacion.direccion,
+                "title":ubicacion.referencia,
                 "subtitle":ubicacion.referencia,
                 "image_url":`https://maps.googleapis.com/maps/api/staticmap?center=${ubicacion.latitud},${ubicacion.longitud}&zoom=18&size=570x300&maptype=roadmap&markers=color:red%7Clabel:AQUI%7C${ubicacion.latitud},${ubicacion.longitud}&key=${Base.GMAP_API_KEY}`,
                 "buttons":[
@@ -444,7 +444,7 @@ async function getDireccionesByUsuario(psid){
         })
     } else{
         elements.push(add_location)
-        text={'text':'No tienes guardado ninguna dirección, agrega para poder seguir con el pedido'}
+        text={'text':'No tienes guardado ninguna dirección, agrega una para poder seguir con el pedido'}
         callSendAPI(psid,text).then( _ =>{
             callSendAPI(psid,getGenericBlock(elements))
         })
