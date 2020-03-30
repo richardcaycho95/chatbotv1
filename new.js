@@ -262,7 +262,7 @@ async function saveLocation(body){
                     "ubicacion_1": temp_data
                 }
             }
-            db.ref('usuario').push(new_usuario)
+            db.ref('usuarios').push(new_usuario)
         }
         resolve()
     })
