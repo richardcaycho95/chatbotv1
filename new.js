@@ -121,9 +121,6 @@ function handleMessage(sender_psid,received_message){
 //handles messaging_postback events
 async function handlePostback(sender_psid,received_postback){
     const payload=received_postback.payload;
-
-    let responses = [];
-    let response;
     let data;
     let elements;
 
