@@ -94,11 +94,14 @@ app.get('/add_location_postback',(req,res)=>{
         let longitud=body.longitud
         let direccion=body.direccion
         let referencia=body.referencia
-
-        callSendAPI(psid,{"text": `Excelente, tu texto es: ${JSON.stringify(body)}`}).then(_ =>{
-            console.log(body)
-            res.status(200).send('Please close this window to return to the conversation thread.')
+        saveLocation(body).then(_ =>{
+            callSendAPI(psid,{"text": `Excelente, tu texto es: ${JSON.stringify(body)}`}).then(_ =>{
+                console.log(body)
+                res.status(200).send('Por favor cierra esta ventana para seguir con el pedido')
+            })
         })
+    } else{
+        console.log('something was wrong')
     }
 });
 ////////////////////////////////////////////////////////
@@ -230,6 +233,42 @@ function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene e
                 reject()
             }
         })
+    })
+}
+async function saveLocation(body){
+    let snapshot = await db.ref('usuarios').once('value')
+    let usuarios = Base.fillInFirebase(snapshot)
+
+    let usuario_selected={existe:false,key:null}
+    //buscando psid del usuario
+    usuarios.map(usuario =>{
+        if(usuario.psid==body.psid){ //si el usuario está registrado en firebase
+            usuario_selected.existe=true
+            usuario_selected.key=usuario.key
+            return false //termina el bucle
+        }
+    })
+    //objeto de ubicacion
+    let temp_data={
+        direccion: body.direccion,
+        latitud: body.latitud,
+        longitud: body.longitud,
+        referencia: body.referencia
+    }
+    if(usuario_selected.existe){ //si el usuario esta registrado en firebase(por su psid)
+        db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).push(temp_data)
+    } else{ //si el usuario no está registrado, se procede a registrar
+        let new_usuario={
+            psid: body.psid,
+            telefono:'',
+            ubicaciones:{
+                "ubicacion_1": temp_data
+            }
+        }
+        db.ref('usuario').push(new_usuario)
+    }
+    return new Promise((resolve,reject)=>{
+
     })
 }
 function getBloqueInicial(){
@@ -439,9 +478,9 @@ function getAddLocationCard(psid){
         "buttons":[
             {
                 'type':'web_url','webview_height_ratio':'tall',
-                'url':`${Base.WEB_URL}/add_location?psid=${psid}`,
+                'url':`${Base.WEB_URL}/add_location`,
                 'title':'AGREGAR','messenger_extensions':'true',
-                'fallback_url':Base.FALLBACK_URL
+                'url':`${Base.WEB_URL}/add_location`
             }
         ]
     }
