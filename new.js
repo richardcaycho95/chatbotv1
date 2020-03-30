@@ -90,10 +90,6 @@ app.get('/add_location_postback',(req,res)=>{
     let body = req.query
     if(body){
         let psid=body.psid
-        let latitud=body.latitud
-        let longitud=body.longitud
-        let direccion=body.direccion
-        let referencia=body.referencia
         saveLocation(body).then(_ =>{
             callSendAPI(psid,{"text": `Excelente, tu texto es: ${JSON.stringify(body)}`}).then(_ =>{
                 console.log(body)
@@ -255,20 +251,20 @@ async function saveLocation(body){
         longitud: body.longitud,
         referencia: body.referencia
     }
-    if(usuario_selected.existe){ //si el usuario esta registrado en firebase(por su psid)
-        db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).push(temp_data)
-    } else{ //si el usuario no está registrado, se procede a registrar
-        let new_usuario={
-            psid: body.psid,
-            telefono:'',
-            ubicaciones:{
-                "ubicacion_1": temp_data
-            }
-        }
-        db.ref('usuario').push(new_usuario)
-    }
     return new Promise((resolve,reject)=>{
-
+        if(usuario_selected.existe){ //si el usuario esta registrado en firebase(por su psid)
+            db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).push(temp_data)
+        } else{ //si el usuario no está registrado, se procede a registrar
+            let new_usuario={
+                psid: body.psid,
+                telefono:'',
+                ubicaciones:{
+                    "ubicacion_1": temp_data
+                }
+            }
+            db.ref('usuario').push(new_usuario)
+        }
+        resolve()
     })
 }
 function getBloqueInicial(){
