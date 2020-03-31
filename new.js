@@ -557,8 +557,8 @@ async function typing(psid,timeout=0){ //typing:TYPING.ON,TYPING.OFF
             }
         })
     }, timeout);
-
-    aux = await requestBody.sender_action = "typing_off"
+    requestBody.sender_action = "typing_off"
+    aux = await 
     request({
         'uri': 'https://graph.facebook.com/v6.0/me/messages',
         'qs':{ 'access_token': process.env.PAGE_ACCESS_TOKEN },
