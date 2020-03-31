@@ -85,7 +85,7 @@ app.get('/pedidopostback',(req,res)=>{
         })
     }
 });
-app.get('/add_location_postback',async (req,res)=>{
+app.get('/add_location_postback',async function (req,res){
     let responses=[]
     let body = req.query
     if(body){
