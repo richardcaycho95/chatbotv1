@@ -90,11 +90,10 @@ app.get('/add_location_postback',(req,res)=>{
     let body = req.query
     if(body){
         let psid=body.psid
-        saveLocation(body).then(_ =>{
-            callSendAPI(psid,{"text": `Excelente, tu texto es: ${JSON.stringify(body)}`}).then(_ =>{
-                console.log(body)
-                res.status(200).send('Por favor cierra esta ventana para seguir con el pedido')
-            })
+        saveLocation(body).then( response =>{ 
+            res.status(200).send('Por favor cierra esta ventana para seguir con el pedido')
+            //luego de guardar, se llama a la funcion para obtener las direcciones
+            getDireccionesByUsuario(psid)
         })
     } else{
         console.log('something was wrong')
@@ -408,7 +407,6 @@ function getPostres(){
 }
 async function getDireccionesByUsuario(psid){
     let snapshot = await db.ref('usuarios').once('value')
-    console.log(`snp en main: ${JSON.stringify(snapshot)}`)
     let usuarios = Base.fillInFirebase(snapshot)
     
     let usuario_selected={existe:false,key:null}
@@ -440,10 +438,7 @@ async function getDireccionesByUsuario(psid){
         //console.log(`elements del bloque: ${JSON.stringify(elements)}`)
         text={'text':'¿Donde te enviamos hoy tu pedido? 🛵'}
         callSendAPI(psid,text).then( response =>{
-            callSendAPI(psid,getGenericBlock(elements)).then( res =>{
-               console.log('finally agregar') 
-               console.log(res)
-            })
+            callSendAPI(psid,getGenericBlock(elements)).then( _ =>{})
         })
     } else{
         elements.push(add_location)
@@ -540,9 +535,9 @@ function getTemplateButton(data){ //debe tener los atributos[text(string),button
 }
 //pagina principal
 app.get('/',(req,res)=>{
-    res.status(200).send('main page of webhook...\n preferencia: '+req.query.preferencia);
+    res.status(200).send('main page of webhook...\n');
 });
-app.use(express.static(__dirname + '/assets/img'));// you can access image 
+app.use(express.static(`${__dirname}/assets/img`));// you can access image 
 
 //lanzamos el webhook
 app.listen(process.env.PORT || 5000,()=>{
