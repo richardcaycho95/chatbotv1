@@ -228,10 +228,12 @@ async function callSendAPI(sender_psid,response,messaging_type='RESPONSE'){
     // })
 //end
 function getTextPedidoFromArray(data,title=''){
-    if(data.length > 0) { text+=`\n:${title}\n` }
+    let temp_text =''
+    if(data.length > 0) { temp_text+=`\n:${title}\n` }
     data.map( segundo =>{
-        text+=`✅ ${data.text} (${data.cantidad}) \n`
+        temp_text+=`✅ ${data.text} (${data.cantidad}) \n`
     })
+    return temp_text
 }
 function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene el saludo con el nombre
     return new Promise((resolve,reject)=>{
