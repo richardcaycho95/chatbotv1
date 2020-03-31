@@ -75,11 +75,22 @@ app.get('/pedidopostback',(req,res)=>{
     let body = req.query
     if(body){
         let psid=body.psid
-        let comentario=body.comentario
-        let pedidos=JSON.parse(body.pedido)
+        let pedido=JSON.parse(body.pedido)
         let complementos=JSON.parse(body.complementos)
+        let comentario=body.comentario
+        let total = body.total
+        let ubicacion_key = body.ubicacion
+        
+        let text = 'Tu pedido es el siguiente:\n'
+        text+=getTextPedidoFromArray(pedido.entradas,'ENTRADAS')
+        text+=getTextPedidoFromArray(pedido.segundos,'SEGUNDOS')
+        text+=getTextPedidoFromArray(complementos.gaseosas,'GASEOSAS')
+        text+=getTextPedidoFromArray(complementos.postres,'POSTRES')
 
-        callSendAPI(psid,{"text": `Excelente, tu texto es: ${JSON.stringify(body)}`}).then(_ =>{
+        text+=`\nEnviar a: ${ubicacion_key}`
+        text+=`\nTotal a pagar: ${total}`
+
+        callSendAPI(psid,{"text": text}).then(_ =>{
             console.log(body)
             res.status(200).send('Please close this window to return to the conversation thread.')
         })
@@ -216,7 +227,12 @@ async function callSendAPI(sender_psid,response,messaging_type='RESPONSE'){
     //     })
     // })
 //end
-
+function getTextPedidoFromArray(data,title=''){
+    if(data.length > 0) { text+=`\n:${title}\n` }
+    data.map( segundo =>{
+        text+=`✅ ${data.text} (${data.cantidad}) \n`
+    })
+}
 function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene el saludo con el nombre
     return new Promise((resolve,reject)=>{
         request({
