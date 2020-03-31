@@ -124,7 +124,7 @@ async function handlePostback(sender_psid,received_postback){
     let data;
     let elements;
 
-    let response = payload.split('--')
+    let response = payload.split('--') //push
 
     console.log(`payload postback: ${payload}`);
     //parametros del payload
