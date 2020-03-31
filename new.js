@@ -229,9 +229,9 @@ async function callSendAPI(sender_psid,response,messaging_type='RESPONSE'){
 //end
 function getTextPedidoFromArray(data,title=''){
     let temp_text =''
-    if(data.length > 0) { temp_text+=`\n:${title}\n` }
-    data.map( segundo =>{
-        temp_text+=`✅ ${data.text} (${data.cantidad}) \n`
+    if(data.length > 0) { temp_text+=`\n:${title}:\n` }
+    data.map( element =>{
+        temp_text+=`✅ ${element.text} (${element.cantidad}) \n`
     })
     return temp_text
 }
