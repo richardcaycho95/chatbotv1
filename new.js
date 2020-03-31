@@ -92,10 +92,12 @@ app.get('/add_location_postback',(req,res)=>{
         let psid=body.psid
         saveLocation(body).then( response =>{ //devuelve el formato de respuesta para enviar al usuario
             res.status(200).send('<h1>Por favor cierra esta ventana para seguir con el pedido</h1>')
+            aux = await typing(psid,2000)
             //luego de guardar, se llama a la funcion para obtener las direcciones
             callSendAPI(psid,response).then( _ => {
                 getDireccionesByUsuario(psid)
             })
+            
         })
     } else{
         console.log('something was wrong')
@@ -534,6 +536,42 @@ function getTemplateButton(data){ //debe tener los atributos[text(string),button
             }
           }
     }
+}
+async function typing(psid,timeout=0){ //typing:TYPING.ON,TYPING.OFF
+    let requestBody={
+        "recipient":{ "id": psid },
+        "sender_action": "typing_on"
+    }
+    aux = await setTimeout(() => {
+        request({
+            'uri': 'https://graph.facebook.com/v6.0/me/messages',
+            'qs':{ 'access_token': process.env.PAGE_ACCESS_TOKEN },
+            'method': 'POST',
+            'json': requestBody
+        },(err,res,body)=>{
+            if (!err) {
+                resolve()
+            } else{
+                console.error('No se puede responder')
+                reject(err)
+            }
+        })
+    }, timeout);
+
+    aux = await requestBody.sender_action = "typing_off"
+    request({
+        'uri': 'https://graph.facebook.com/v6.0/me/messages',
+        'qs':{ 'access_token': process.env.PAGE_ACCESS_TOKEN },
+        'method': 'POST',
+        'json': requestBody
+    },(err,res,body)=>{
+        if (!err) {
+            resolve()
+        } else{
+            console.error('No se puede responder')
+            reject(err)
+        }
+    })
 }
 //pagina principal
 app.get('/',(req,res)=>{
