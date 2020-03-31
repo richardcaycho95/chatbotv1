@@ -90,10 +90,12 @@ app.get('/add_location_postback',(req,res)=>{
     let body = req.query
     if(body){
         let psid=body.psid
-        saveLocation(body).then( response =>{ 
-            res.status(200).send('Por favor cierra esta ventana para seguir con el pedido')
+        saveLocation(body).then( response =>{ //devuelve el formato de respuesta para enviar al usuario
+            res.status(200).send('<h1>Por favor cierra esta ventana para seguir con el pedido</h1>')
             //luego de guardar, se llama a la funcion para obtener las direcciones
-            getDireccionesByUsuario(psid)
+            callSendAPI(psid,response).then( _ => {
+                getDireccionesByUsuario(psid)
+            })
         })
     } else{
         console.log('something was wrong')
@@ -266,7 +268,7 @@ async function saveLocation(body){
             }
             db.ref('usuarios').push(new_usuario)
         }
-        resolve()
+        resolve({'text':'Genial! Haz agregado correctamente tu ubicación'})
     })
 }
 function getBloqueInicial(){
@@ -436,7 +438,7 @@ async function getDireccionesByUsuario(psid){
         })
         elements.push(add_location)
         //console.log(`elements del bloque: ${JSON.stringify(elements)}`)
-        text={'text':'¿Donde te enviamos hoy tu pedido? 🛵'}
+        text={'text':'¿A donde enviamos hoy tu pedido? 🛵'}
         callSendAPI(psid,text).then( response =>{
             callSendAPI(psid,getGenericBlock(elements)).then( _ =>{})
         })
