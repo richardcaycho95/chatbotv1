@@ -99,7 +99,7 @@ app.get('/pedidopostback',(req,res)=>{
 
         callSendAPI(psid,{"text": text}).then(_ =>{
             res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
-            templateAfterPedido(psid,body)
+            templateAfterPedido(psid,JSO.stringify(body))
         })
     }
 });
@@ -236,7 +236,7 @@ function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene e
         })
     })
 }
-async function templateAfterPedido(psid,body){ //envia la cada codificada en el payload
+async function templateAfterPedido(psid,body){ //envia la data codificada en el payload
     let data_encoded = Base.encodeData(body)
 
     data={
