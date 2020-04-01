@@ -35,7 +35,7 @@ module.exports={
   encodeData:function(decoded){
       let buff = new Buffer(decoded)
       return JSON.stringify(buff.toString('base64'))
-  }
+  },
   GMAP_API_KEY: 'AIzaSyDxIn9qXbWD1lvSzHCiphSNw7_jiPK6obw',
   WEBHOOK_URL: 'https://vizarro.herokuapp.com',
   FALLBACK_URL: 'https://restaurante-saborperuano.netlify.com/fallback',
