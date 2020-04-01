@@ -251,7 +251,7 @@ async function templateAfterPedido(psid,body){ //envia la data codificada en el 
 async function pedirTelefono(psid,body_encoded){ //muestra los telefonos registrados(si hubiera) y muestra card de agregar telefono
     let data_decoded = Base.decodeData(body_encoded)
     let usuario_selected = await getUsuarioByPsid(psid)
-    let add_phone = addPhoneCard(body_encoded)
+    let add_phone = getAddPhoneCard(body_encoded)
     // let telefono = {
     //     numero: body.numero
     // }
@@ -382,7 +382,7 @@ function getBloqueInicial(){
 }
 async function getDireccionesByUsuario(psid){
     let usuario_selected = await getUsuarioByPsid(psid)
-    let add_location = getAddLocationCard(psid) //card para agregar dirección del usuario
+    let add_location = getAddLocationCard() //card para agregar dirección del usuario
     let elements=[] // elementos del bloque
     if(usuario_selected.existe){ //si el usuario esta registrado en firebase(por su psid)
         let snapshot = await db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).once('value')
@@ -428,7 +428,7 @@ async function direccionSeleccionada(psid,ubicacion_key){
 /********************************************
  * FUNCIONES BASES PARA LA CREACION DE FORMATOS JSON
  * ****************************************** */ 
-function getAddLocationCard(psid){
+function getAddLocationCard(){
     return {
         "title":'Añade una ubicación',
         "image_url":`${Base.WEBHOOK_URL}/add_location.jpg`,
@@ -443,7 +443,7 @@ function getAddLocationCard(psid){
         ]
     }
 }
-function getAddNumberCard(psid){
+function getAddPhoneCard(body){
     return {
         "title":'Añade un número de celular',
         "image_url":`${Base.WEBHOOK_URL}/add_location.jpg`,
@@ -451,9 +451,9 @@ function getAddNumberCard(psid){
         "buttons":[
             {
                 'type':'web_url','webview_height_ratio':'tall',
-                'url':`${Base.WEB_URL}/add_location`,
+                'url':`${Base.WEB_URL}/add_location?data=${body}`,
                 'title':'AGREGAR','messenger_extensions':'true',
-                'url':`${Base.WEB_URL}/add_location`
+                'url':`${Base.WEB_URL}/add_location?data=${body}`
             }
         ]
     }
