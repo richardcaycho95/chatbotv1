@@ -99,7 +99,7 @@ app.get('/pedidopostback',(req,res)=>{
 
         callSendAPI(psid,{"text": text}).then(_ =>{
             res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
-            templateAfterPedido(psid,JSO.stringify(body))
+            templateAfterPedido(psid,JSON.stringify(body))
         })
     }
 });
