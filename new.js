@@ -2,7 +2,6 @@ const express= require('express');
 const bodyParser = require('body-parser');
 const request = require('request');
 const path = require('path');
-const rp = require('request-promise');
 
 const admin=require('firebase-admin');
 
@@ -13,18 +12,25 @@ admin.initializeApp({
 const db=admin.database()
 
 const Base = require('./assets/basic_functions.js')
-
-//variables constantes de ambiente
-const SUSBCRIBE_MODE='subscribe';
-const PAGE_ACCESS_TOKEN=process.env.PAGE_ACCESS_TOKEN;
-
-//constantes para la preferencia{menu,postre,gaseosa}
-const MENU='menu';
-const GASEOSA='gaseosa';
-const POSTRE='postre';
+const BaseJson = require('./assets/basic_json_functions')
+const BasePayload = require('./assets/basic_payload_functions')
 
 const app = express().use(bodyParser.json());
 
+app.use(express.static(`${__dirname}/assets/img`));// mostrar imagenes de assets
+
+//lanzamos el webhook
+app.listen(process.env.PORT || 5000,()=>{
+    console.log(`servidor webhook iniciado en el puerto ${process.env.PORT} ...`);
+})
+
+/******************************************************/
+/********************ROUTES****************************/
+/******************************************************/
+//pagina principal
+app.get('/',(req,res)=>{
+    res.status(200).send('main page of webhook...\n');
+});
 //peticiones post del endpoint para conectar con facebook
 app.post('/webhook',(req,res)=>{
     console.log('route POST: /webhook');
@@ -58,7 +64,7 @@ app.get('/webhook',(req,res)=>{
     const challenge = req.query['hub.challenge'];
 
     if(mode && token){
-        if (mode === SUSBCRIBE_MODE && token === process.env.VERIFICATION_TOKEN) {
+        if (mode === Base.SUSBCRIBE_MODE && token === Base.VERIFICATION_TOKEN) {
             console.log('WEBHOOK VERIFICADO');
             res.status(200).send(challenge);    
         } else{
@@ -82,10 +88,10 @@ app.get('/pedidopostback',(req,res)=>{
         let ubicacion_key = body.ubicacion
         
         let text = 'Tu pedido es el siguiente:\n'
-        text+=getTextPedidoFromArray(pedido.entradas,'ENTRADAS')
-        text+=getTextPedidoFromArray(pedido.segundos,'SEGUNDOS')
-        text+=getTextPedidoFromArray(complementos.gaseosas,'GASEOSAS')
-        text+=getTextPedidoFromArray(complementos.postres,'POSTRES')
+        text+=Base.getTextPedidoFromArray(pedido.entradas,'ENTRADAS')
+        text+=Base.getTextPedidoFromArray(pedido.segundos,'SEGUNDOS')
+        text+=Base.getTextPedidoFromArray(complementos.gaseosas,'GASEOSAS')
+        text+=Base.getTextPedidoFromArray(complementos.postres,'POSTRES')
 
         text+=(comentario=='')?'':`\nComentario: ${comentario}`
         text+=`\nEnviar a: ${ubicacion_key}`
@@ -113,9 +119,9 @@ app.get('/add_location_postback',(req,res)=>{
         console.log('something was wrong')
     }
 });
-////////////////////////////////////////////////////////
-/*********sección de funciones basicas*****************/
-////////////////////////////////////////////////////////
+/**************************************************************/
+/********FUNCIONES BASICAS PARA COMUNICAR CON EL BOT***********/
+/**************************************************************/
 
 //handles message events
 function handleMessage(sender_psid,received_message){
@@ -147,12 +153,12 @@ async function handlePostback(sender_psid,received_postback){
         case 'MENU_DIA':
             //mensaje donde se detalla el menú del dia y se pregunta sobre la acción a realizar
             //se debe recorrer el bucle para leer los formatos json
-            callSendAPI(sender_psid,getMenuDia())
+            callSendAPI(sender_psid,BasePayload.getMenuDia())
             break;
         case 'complementos':
             //mensaje donde se muestra las gaseosas y se llama a la accción
             //se debe recorrer el bucle para leer los formatos json
-            let comple=getComplementos()
+            let comple=BasePayload.getComplementos()
             comple.forEach((response)=>{
                 responses.push(response)
             })
@@ -161,7 +167,7 @@ async function handlePostback(sender_psid,received_postback){
         case 'postres':
             //mensaje donde se muestra los postres y se llama a la accción
             //se debe recorrer el bucle para leer los formatos json
-            let postres=getPostres()
+            let postres=BasePayload.getPostres()
             postres.map((response)=>{
                 responses.push(response)
             })
@@ -174,7 +180,7 @@ async function handlePostback(sender_psid,received_postback){
             direccionSeleccionada(sender_psid,temp_data)//temp_data: id del objeto ubicacion, este ha sido seleccionado por el usuario
             break;
         case 'RP_PEDIR_TELEFONO':
-            pedirTelefono(sender_psid,body)
+            pedirTelefono(sender_psid,temp_data) //la data viene codificada desde /pedidopostback (body) y este pasa por templateAfterPedido para al final llegar a esta
             break;
         case 'GET_STARTED':
             callSendAPI(sender_psid,{'text':'Bienvenido al delivery virtual :)'})
@@ -195,7 +201,7 @@ async function callSendAPI(sender_psid,response,messaging_type='RESPONSE'){
     return new Promise((resolve,reject)=>{
         request({
             'uri': 'https://graph.facebook.com/v6.0/me/messages',
-            'qs':{ 'access_token': process.env.PAGE_ACCESS_TOKEN },
+            'qs':{ 'access_token': Base.PAGE_ACCESS_TOKEN },
             'method': 'POST',
             'json': requestBody
         },(err,res,body)=>{
@@ -209,19 +215,13 @@ async function callSendAPI(sender_psid,response,messaging_type='RESPONSE'){
         })
     })
 }
-//end
-function getTextPedidoFromArray(data,title=''){ //el texto ya tiene un formato definido
-    let temp_text =''
-    if(data.length > 0) { temp_text+=`\n${title}:\n` }
-    data.map( element =>{
-        temp_text+=`✅ ${element.text} (${element.cantidad}) \n`
-    })
-    return temp_text
-}
+/*****END:FUNCIONES BASICAS PARA COMUNICAR CON EL BOT:END********/
+
+
 function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene el saludo con el nombre
     return new Promise((resolve,reject)=>{
         request({
-            'uri':`https://graph.facebook.com/${sender_psid}?fields=first_name,last_name,profile_pic&access_token=${process.env.PAGE_ACCESS_TOKEN}`,
+            'uri':`https://graph.facebook.com/${sender_psid}?fields=first_name,last_name,profile_pic&access_token=${Base.PAGE_ACCESS_TOKEN}`,
             'method': 'GET'
         },(err,res,body)=>{
             if (!err) {
@@ -236,8 +236,8 @@ function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene e
         })
     })
 }
-async function templateAfterPedido(psid,body){
-    let data_encoded = encodeData(body)
+async function templateAfterPedido(psid,body){ //envia la cada codificada en el payload
+    let data_encoded = Base.encodeData(body)
 
     data={
         'text':'Si tu pedido está conforme, presiona CONTINUAR ✅, sino presiona MODIFICAR PEDIDO',
@@ -246,18 +246,37 @@ async function templateAfterPedido(psid,body){
             {'type':'postback','title':'MODIFICAR PEDIDO','payload':`MODIFICAR_PEDIDO--${data_encoded}`}
         ]
     }
-    callSendAPI(psid,getTemplateButton(data))
+    callSendAPI(psid,BaseJson.getTemplateButton(data))
 }
-async function pedirTelefono(psid,body_encoded){
-    let body = decodeData(body_encoded)
+async function pedirTelefono(psid,body_encoded){ //muestra los telefonos registrados(si hubiera) y muestra card de agregar telefono
+    let data_decoded = Base.decodeData(body_encoded)
     let usuario_selected = await getUsuarioByPsid(psid)
-    let telefono = {
-        numero: body.numero
-    }
-    if (usuario_selected.existe) { //si esta registrado en firebase por su psid
-        db.ref(`usuarios/${usuario_selected.key}/telefonos`).push(telefono)
+    let add_phone = addPhoneCard(body_encoded)
+    // let telefono = {
+    //     numero: body.numero
+    // }
+    if (usuario_selected.existe) { //si esta registrado en firebase por su psid, se procede a comprobar si tiene telefonos registrados
+        let snapshot = await db.ref(`usuarios/${usuario_selected.key}/telefonos`).once('value')
+        telefonos = Base.fillInFirebase(snapshot)
+        telefonos.map(telefono =>{
+            data_decoded.telefono = {key: telefono.key,numero:telefono.numero}
+            let data_encoded = Base.encodeData(data_decoded)
+            //el payload viene arrastrando la data del pedido, ubicacion y ahora se añade el telefono seleccionado
+            elements.push({
+                "text":'',
+                "buttons":[
+                    {'type':'postback','title':'SELECCIONAR','payload':`RP_TELEFONO_SELECCIONADO--${data_encoded}`}
+                ]
+            })
+        })
+        elements.push(add_phone)
+        //console.log(`elements del bloque: ${JSON.stringify(elements)}`)
+        text={'text':'¿A donde enviamos hoy tu pedido? 🛵'}
+        callSendAPI(psid,text).then( response =>{
+            callSendAPI(psid,BaseJson.getGenericBlock(elements)).then( _ =>{})
+        })
     } else{
-        await saveUser(psid,'telefonos',telefono)
+        saveUser(psid,'telefonos',telefono)
     }
     data={
         'text':'',
@@ -266,7 +285,7 @@ async function pedirTelefono(psid,body_encoded){
             {'type':'postback','title':'MODIFICAR PEDIDO','payload':`MODIFICAR_PEDIDO--${data_encoded}`}
         ]
     }
-    callSendAPI(psid,getTemplateButton(data))
+    callSendAPI(psid,BaseJson.getTemplateButton(data))
 }
 async function getUsuarioByPsid(psid){ //retorna un objeto con los atributos "existe" cuyo valor boleano de acuerdo a si encuentra al usuario o no, "key": de existir, este atributo tiene la key del usuario
     let snapshot = await db.ref('usuarios').once('value')
@@ -314,14 +333,6 @@ async function saveUser(psid,atributo,data){
     }
     db.ref('usuarios').push(new_usuario)
 }
-function decodeData(encoded){
-    let buff = new Buffer(encoded,'base64')
-    return JSON.parse(buff.toString('ascii'))
-}
-function encodeData(decoded){
-    let buff = new Buffer(decoded)
-    return JSON.stringify(buff.toString('base64'))
-}
 function getBloqueInicial(){
     //data:es un bloque,un mensaje y contiene elementos(cards)
     let data=[
@@ -357,7 +368,7 @@ function getBloqueInicial(){
     let elements=[];
     data.forEach((element)=>{
         //creando botones
-        let buttons=getButtons(element.buttons);
+        let buttons=BaseJson.getButtons(element.buttons);
 
         elements.push({
             "title":element.empresa,
@@ -367,106 +378,10 @@ function getBloqueInicial(){
         })
     })
     //elements=JSON.stringify(elements)
-    return getGenericBlock(elements)
-}
-function getEntradas(){
-    let data=[{'title':'CALDO DE GALLINA',}]
-}
-
-//return array: [0]=> response del menu,[1]=>response de los botones de accción
-//se debe leer con bucle
-function getMenuDia(){
-    let responses=[]
-    data={
-        'dia': '2 DE MARZO',
-        'entradas':['🍜 CALDO DE GALLINA','🐟 CEVICHE','🍣 ENSALADA DE PALTA'],
-        'segundos':['✅ ESTOFADO DE POLLO CON PAPAS','✅ ARROZ CON PATO','✅ TALLARINES VERDES CON BISTECK']
-    };
-    let entradas_text='';
-    let segundos_text='';
-    //formato de lista de entradas
-    data.entradas.map((entrada)=>{
-        entradas_text+=entrada+'\n';
-    });
-    //formato de lista de segundos
-    data.segundos.map((segundo)=>{
-        segundos_text+=segundo+'\n';
-    });
-    // responses.push({'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY ${data.dia}😋 \n\nENTRADAS:\n${entradas_text}\nSEGUNDOS:\n${segundos_text}`})
-    // //responses.push(getAccion(MENU))
-    // return responses;
-    return {'text': `📌 ESTE ES EL MENÚ DEL DIA DE HOY ${data.dia}😋 \n\nENTRADAS:\n${entradas_text}\nSEGUNDOS:\n${segundos_text}`}
-}
-function getComplementos(){
-    let responses=[]
-    data={
-        'gaseosas':[
-            {'descripcion':'✅ PERSONAL 410 ml','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 1.50'},
-            {'descripcion':'✅ GORDITA O JUMBO 625ml','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 3.00'},
-            {'descripcion':'✅ 1 LITRO','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 5.00'},
-            {'descripcion':'✅ 1 LITRO Y MEDIO','img_url':'https://www.cocacoladeperu.com.pe/content/dam/journey/pe/es/private/historias/bienstar/inca.rendition.598.336.jpg','precio':'S/. 7.00'}
-        ],
-        'mensaje_inicial':'📌 TENEMOS GASEOSAS INCA KOLA Y COCA COLA 😀\n(desliza a la derecha para verlos :) )'
-    }
-    responses.push({'text': data.mensaje_inicial})
-
-    elements=[];
-    data.gaseosas.map((gaseosa)=>{
-        //creamos los elementos de los productos
-        elements.push({
-            'title':gaseosa.descripcion,
-            'image_url':gaseosa.img_url,
-            'subtitle':'Precio: '+gaseosa.precio
-        })
-    })
-    //creamos el mensaje donde tendrá todos los elementos
-    responses.push(getGenericBlock(elements))
-    //agregamos la acción
-    responses.push(getAccion(GASEOSA))
-    return responses;
-}
-function getPostres(){
-    let responses=[]
-    data={
-        'postres':[
-            {'descripcion':'✅ FLAN','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.50'},
-            {'descripcion':'✅ GELATINA','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.00'},
-            {'descripcion':'✅ GELATINA CON FLAN','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.00'},
-            {'descripcion':'✅ MARCIANOS','img_url':'https://dulcesperu.com/wp-content/uploads/2019/10/receta-del-flan-con-gelatina-lonchera.jpg','precio':'S/. 1.00'},
-        ],
-        'mensaje_inicial':`📌 ESTOS SON NUESTROS POSTRES\n(desliza a la derecha para verlos :) )`
-    }
-    elements=[]
-
-    responses.push({'text': data.mensaje_inicial})
-    data.postres.map((postre)=>{
-        //elementos de los postres
-        elements.push({
-            "title":postre.descripcion,
-            "image_url":postre.img_url,
-            "subtitle":"Precio: "+postre.precio
-        })
-    })
-    //creamos el mensaje donde tendrá todos los elementos
-    responses.push(getGenericBlock(elements))
-    //agregamos la acción
-    responses.push(getAccion(POSTRE))
-    return responses;
+    return BaseJson.getGenericBlock(elements)
 }
 async function getDireccionesByUsuario(psid){
-    let snapshot = await db.ref('usuarios').once('value')
-    let usuarios = Base.fillInFirebase(snapshot)
-    
-    let usuario_selected={existe:false,key:null}
-    //buscando psid del usuario
-    usuarios.map(usuario =>{
-        console.log(`el usuario: ${JSON.stringify(usuario)}`)
-        if(usuario.psid==psid){ //si el usuario está registrado en firebase
-            usuario_selected.existe=true
-            usuario_selected.key=usuario.key
-            return false //termina el bucle
-        }
-    })
+    let usuario_selected = await getUsuarioByPsid(psid)
     let add_location = getAddLocationCard(psid) //card para agregar dirección del usuario
     let elements=[] // elementos del bloque
     if(usuario_selected.existe){ //si el usuario esta registrado en firebase(por su psid)
@@ -486,13 +401,13 @@ async function getDireccionesByUsuario(psid){
         //console.log(`elements del bloque: ${JSON.stringify(elements)}`)
         text={'text':'¿A donde enviamos hoy tu pedido? 🛵'}
         callSendAPI(psid,text).then( response =>{
-            callSendAPI(psid,getGenericBlock(elements)).then( _ =>{})
+            callSendAPI(psid,BaseJson.getGenericBlock(elements)).then( _ =>{})
         })
     } else{
         elements.push(add_location)
         text={'text':'No tienes guardada ninguna dirección, agrega una para poder continuar con el pedido'}
         callSendAPI(psid,text).then( _ =>{
-            callSendAPI(psid,getGenericBlock(elements))
+            callSendAPI(psid,BaseJson.getGenericBlock(elements))
         })
     }
 }
@@ -508,27 +423,11 @@ async function direccionSeleccionada(psid,ubicacion_key){
             {'type':'postback','title':'CAMBIAR DIRECCION','payload':'RP_DIRECCIONES'}
         ]
     }
-    callSendAPI(psid,getTemplateButton(data))
+    callSendAPI(psid,BaseJson.getTemplateButton(data))
 }
 /********************************************
  * FUNCIONES BASES PARA LA CREACION DE FORMATOS JSON
  * ****************************************** */ 
-function getButtons(buttons){//buttons: array que debe tener de forma obligatoria lso campos (type,title,payload)
-    let temp=[];
-    buttons.forEach((button)=>{
-        if (button.type==='web_url') {
-            format={ 
-                "type":button.type, "url":button.url,"title":button.title,
-                "webview_height_ratio":button.webview_height_ratio,"messenger_extensions":button.messenger_extensions,
-                "fallback_url":button.fallback_url
-            }
-        } else{
-            format={ "type":button.type, "title":button.title, "payload":button.payload }
-        }
-        temp.push(format)
-    })
-    return JSON.stringify(temp);
-}
 function getAddLocationCard(psid){
     return {
         "title":'Añade una ubicación',
@@ -559,53 +458,6 @@ function getAddNumberCard(psid){
         ]
     }
 }
-//devuelve formato json para crear mensaje de conjuntos de bloque
-//elements: array donde se tiene los elementos
-function getGenericBlock(elements=[]){
-    return {
-        "attachment":{
-            "type":"template",
-            "payload":{
-                "template_type":"generic",
-                "elements":elements
-            }
-        }
-    }
-}
-//bloque que debe aparecer despues de cada consulta a menu,gaseosa o postre
-//tipo:{menu,gaseosa,postre}, para enviar a la pagina web qué está pidiendo primero
-function getAccion(tipo=''){
-    data={
-        'text':'¿Qué deseas hacer?',
-        'buttons':[
-            {'type':'web_url','url':`https://vizarro.herokuapp.com?preferencia=${tipo}`,'title':'REALIZAR PEDIDO 🛒'},
-            {'type':'postback','title':'VOLVER AL MENÚ PRINCIPAL 🏠','payload':'home'}
-        ]
-    }
-    return getTemplateButton(data)
-}
-function getTemplateButton(data){ //debe tener los atributos[text(string),buttons(array)]
-    return {
-        'attachment':{
-            "type":"template",
-            "payload":{
-              "template_type":"button",
-              "text":data.text,
-              "buttons":getButtons(data.buttons)
-            }
-          }
-    }
-}
-//pagina principal
-app.get('/',(req,res)=>{
-    res.status(200).send('main page of webhook...\n');
-});
-app.use(express.static(`${__dirname}/assets/img`));// you can access image 
-
-//lanzamos el webhook
-app.listen(process.env.PORT || 5000,()=>{
-    console.log(`servidor webhook iniciado en el puerto ${process.env.PORT} ...`);
-})
 
 // app.use(function(req, res, next) {
 //     res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from

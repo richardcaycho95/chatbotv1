@@ -20,8 +20,32 @@ module.exports={
     // console.log(`snapshot en array: ${JSON.stringify(temp_return)}`)
     return temp_return
   },
+  getTextPedidoFromArray:function(data,title=''){ //el texto ya tiene un formato definido
+      let temp_text =''
+      if(data.length > 0) { temp_text+=`\n${title}:\n` }
+      data.map( element =>{
+          temp_text+=`✅ ${element.text} (${element.cantidad}) \n`
+      })
+      return temp_text
+  },
+  decodeData:function(encoded){
+      let buff = new Buffer(encoded,'base64')
+      return JSON.parse(buff.toString('ascii'))
+  },
+  encodeData:function(decoded){
+      let buff = new Buffer(decoded)
+      return JSON.stringify(buff.toString('base64'))
+  }
   GMAP_API_KEY: 'AIzaSyDxIn9qXbWD1lvSzHCiphSNw7_jiPK6obw',
   WEBHOOK_URL: 'https://vizarro.herokuapp.com',
   FALLBACK_URL: 'https://restaurante-saborperuano.netlify.com/fallback',
-  WEB_URL: 'https://restaurante-saborperuano.netlify.com'
+  WEB_URL: 'https://restaurante-saborperuano.netlify.com',
+  //constantes para la preferencia{menu,postre,gaseosa}
+  MENU:'menu',
+  GASEOSA:'gaseosa',
+  POSTRE:'postre',
+  //variables constantes de ambiente
+  SUSBCRIBE_MODE:'subscribe',
+  PAGE_ACCESS_TOKEN:process.env.PAGE_ACCESS_TOKEN,
+  VERIFICATION_TOKEN:process.env.VERIFICATION_TOKEN
 }
