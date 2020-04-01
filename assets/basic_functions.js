@@ -29,11 +29,11 @@ module.exports={
       return temp_text
   },
   decodeData:function(encoded){
-      let buff = new Buffer(encoded,'base64')
+      let buff = Buffer.alloc(encoded,'base64')
       return JSON.parse(buff.toString('ascii'))
   },
   encodeData:function(decoded){
-      let buff = new Buffer(decoded)
+      let buff = Buffer.alloc(decoded)
       return JSON.stringify(buff.toString('base64'))
   },
   GMAP_API_KEY: 'AIzaSyDxIn9qXbWD1lvSzHCiphSNw7_jiPK6obw',
