@@ -255,6 +255,7 @@ async function pedirTelefono(psid,body_encoded){ //muestra los telefonos registr
     // let telefono = {
     //     numero: body.numero
     // }
+    let elements = []
     if (usuario_selected.existe) { //si esta registrado en firebase por su psid, se procede a comprobar si tiene telefonos registrados
         let snapshot = await db.ref(`usuarios/${usuario_selected.key}/telefonos`).once('value')
         telefonos = Base.fillInFirebase(snapshot)
