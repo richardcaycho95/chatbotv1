@@ -99,7 +99,7 @@ app.get('/pedidopostback',(req,res)=>{
 
         callSendAPI(psid,{"text": text}).then(_ =>{
             res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
-            templateAfterPedido(psid,JSON.stringify(body))
+            templateAfterPedido(psid,body)
         })
     }
 });
@@ -259,34 +259,31 @@ async function pedirTelefono(psid,body_encoded){ //muestra los telefonos registr
     if (usuario_selected.existe) { //si esta registrado en firebase por su psid, se procede a comprobar si tiene telefonos registrados
         let snapshot = await db.ref(`usuarios/${usuario_selected.key}/telefonos`).once('value')
         telefonos = Base.fillInFirebase(snapshot)
-        telefonos.map(telefono =>{
-            data_decoded.telefono = {key: telefono.key,numero:telefono.numero}
-            let data_encoded = Base.encodeData(data_decoded)
-            //el payload viene arrastrando la data del pedido, ubicacion y ahora se añade el telefono seleccionado
-            elements.push({
-                "text":'',
-                "buttons":[
-                    {'type':'postback','title':'SELECCIONAR','payload':`RP_TELEFONO_SELECCIONADO--${data_encoded}`}
-                ]
+        if(telefonos.length>0){ //tiene telenos registrados
+            telefonos.map(telefono =>{
+                data_decoded.telefono = {key: telefono.key,numero:telefono.numero}
+                let data_encoded = Base.encodeData(data_decoded)
+                //el payload viene arrastrando la data del pedido, ubicacion y ahora se añade el telefono seleccionado
+                elements.push({
+                    "text":'',
+                    "buttons":[
+                        {'type':'postback','title':'SELECCIONAR','payload':`RP_TELEFONO_SELECCIONADO--${data_encoded}`}
+                    ]
+                })
             })
-        })
-        elements.push(add_phone)
-        //console.log(`elements del bloque: ${JSON.stringify(elements)}`)
-        text={'text':'¿A donde enviamos hoy tu pedido? 🛵'}
-        callSendAPI(psid,text).then( response =>{
-            callSendAPI(psid,BaseJson.getGenericBlock(elements)).then( _ =>{})
-        })
-    } else{
-        saveUser(psid,'telefonos',telefono)
+            elements.push(add_phone)
+            text={'text':'Escoge o agrega un número de celular 📲:'}
+            callSendAPI(psid,text).then( response =>{
+                callSendAPI(psid,BaseJson.getGenericBlock(elements)).then( _ =>{})
+            })
+        } else{ //no tiene telefonos registrados
+            elements.push(add_phone)
+            text={'text':'📌 Agrega un número de celular para avisarte sobre el estado de tu pedido:'}
+            callSendAPI(psid,text).then( response =>{
+                callSendAPI(psid,BaseJson.getGenericBlock(elements)).then( _ =>{})
+            })
+        }
     }
-    data={
-        'text':'',
-        'buttons':[
-            {'type':'postback','title':'CONTINUAR ✅','payload':`RP_PEDIR_TELEFONO--${data_encoded}`},
-            {'type':'postback','title':'MODIFICAR PEDIDO','payload':`MODIFICAR_PEDIDO--${data_encoded}`}
-        ]
-    }
-    callSendAPI(psid,BaseJson.getTemplateButton(data))
 }
 async function getUsuarioByPsid(psid){ //retorna un objeto con los atributos "existe" cuyo valor boleano de acuerdo a si encuentra al usuario o no, "key": de existir, este atributo tiene la key del usuario
     let snapshot = await db.ref('usuarios').once('value')

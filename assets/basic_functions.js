@@ -33,8 +33,8 @@ module.exports={
       return JSON.parse(buff.toString('ascii'))
   },
   encodeData:function(decoded){
-      let buff = Buffer.from(decoded)
-      return JSON.stringify(buff.toString('base64'))
+      let buff = Buffer.from(JSON.stringify(decoded))
+      return buff.toString('base64')
   },
   GMAP_API_KEY: 'AIzaSyDxIn9qXbWD1lvSzHCiphSNw7_jiPK6obw',
   WEBHOOK_URL: 'https://vizarro.herokuapp.com',
