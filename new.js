@@ -315,7 +315,7 @@ async function saveLocation(body){
         if(usuario_selected.existe){ //si el usuario esta registrado en firebase(por su psid)
             db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).push(ubicacion)
         } else{ //si el usuario no está registrado, se procede a registrar
-            await saveUser(psid,'ubicaciones',ubicacion)
+            saveUser(psid,'ubicaciones',ubicacion)
         }
         resolve({'text':'Genial! Haz agregado correctamente tu ubicación'})
     })
