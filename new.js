@@ -87,12 +87,13 @@ app.get('/pedidopostback',(req,res)=>{
         text+=getTextPedidoFromArray(complementos.gaseosas,'GASEOSAS')
         text+=getTextPedidoFromArray(complementos.postres,'POSTRES')
 
+        text+=(comentario=='')?'':`\nComentario: ${comentario}`
         text+=`\nEnviar a: ${ubicacion_key}`
         text+=`\nTotal a pagar: ${total}`
 
         callSendAPI(psid,{"text": text}).then(_ =>{
             console.log(body)
-            res.status(200).send('Please close this window to return to the conversation thread.')
+            res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
         })
     }
 });
@@ -227,9 +228,9 @@ async function callSendAPI(sender_psid,response,messaging_type='RESPONSE'){
     //     })
     // })
 //end
-function getTextPedidoFromArray(data,title=''){
+function getTextPedidoFromArray(data,title=''){ //el texto ya tiene un formato definido
     let temp_text =''
-    if(data.length > 0) { temp_text+=`\n:${title}:\n` }
+    if(data.length > 0) { temp_text+=`\n${title}:\n` }
     data.map( element =>{
         temp_text+=`✅ ${element.text} (${element.cantidad}) \n`
     })
@@ -477,7 +478,7 @@ async function direccionSeleccionada(psid,ubicacion_key){
                 'title':'CONTINUAR ✅','webview_height_ratio':'tall',
                 'messenger_extensions':'true','fallback_url':`${Base.WEB_URL}?ubicacion=${ubicacion_key}`
             },
-            {'type':'postback','title':'CAMBIAR DIRECCION','payload':'home'}
+            {'type':'postback','title':'CAMBIAR DIRECCION','payload':'RP_DIRECCIONES'}
         ]
     }
     callSendAPI(psid,getTemplateButton(data))
