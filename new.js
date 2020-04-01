@@ -182,6 +182,9 @@ async function handlePostback(sender_psid,received_postback){
         case 'RP_PEDIR_TELEFONO':
             pedirTelefono(sender_psid,temp_data) //la data viene codificada desde /pedidopostback (body) y este pasa por templateAfterPedido para al final llegar a esta
             break;
+        case 'RP_AGREGAR_TELEFONO':
+            telefonoQR(sender_psid,temp_data)
+            break;
         case 'GET_STARTED':
             callSendAPI(sender_psid,{'text':'Bienvenido al delivery virtual :)'})
             break;
@@ -247,6 +250,15 @@ async function templateAfterPedido(psid,body){ //envia la data codificada en el 
         ]
     }
     callSendAPI(psid,BaseJson.getTemplateButton(data))
+}
+async function telefonoQR(psid,body_encoded){
+    data = {
+        "text": "Pick a color:",
+        "quick_replies":[
+            { "content_type":"user_phone_number" }
+        ]
+    }
+    callSendAPI(psid,data)
 }
 async function pedirTelefono(psid,body_encoded){ //muestra los telefonos registrados(si hubiera) y muestra card de agregar telefono
     let data_decoded = Base.decodeData(body_encoded)
@@ -441,18 +453,13 @@ function getAddLocationCard(){
         ]
     }
 }
-function getAddPhoneCard(body){
+function getAddPhoneCard(data_encoded){
     return {
         "title":'Añade un número de celular',
         "image_url":`${Base.WEBHOOK_URL}/add_location.jpg`,
         "subtitle":"",
         "buttons":[
-            {
-                'type':'web_url','webview_height_ratio':'tall',
-                'url':`${Base.WEB_URL}/add_location?data=${body}`,
-                'title':'AGREGAR','messenger_extensions':'true',
-                'url':`${Base.WEB_URL}/add_location?data=${body}`
-            }
+            {'type':'postback','title':'AGREGAR','payload':`RP_AGREGAR_TELEFONO--${data_encoded}`},
         ]
     }
 }
