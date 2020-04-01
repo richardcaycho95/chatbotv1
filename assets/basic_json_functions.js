@@ -1,5 +1,5 @@
 //MODULO QUE TIENE TODAS LAS FUNCIONES QUE RETORNAN LOS DIFERENTES FORMATOS JSON QUE SE NECESITA PARA CREAR UNA RESPUESTA Y MANDAR AL API DE MESSENGER
-module.exports = {
+var self = module.exports = {
     getButtons:function(buttons){//buttons: array que debe tener de forma obligatoria lso campos (type,title,payload)
         let temp=[];
         buttons.forEach((button)=>{
@@ -36,7 +36,7 @@ module.exports = {
                 "payload":{
                 "template_type":"button",
                 "text":data.text,
-                "buttons":getButtons(data.buttons)
+                "buttons":self.getButtons(data.buttons)
                 }
             }
         }
@@ -49,6 +49,6 @@ module.exports = {
                 {'type':'postback','title':'VOLVER AL MENÚ PRINCIPAL 🏠','payload':'home'}
             ]
         }
-        return getTemplateButton(data)
+        return self.getTemplateButton(data)
     },
 }
