@@ -1,5 +1,6 @@
 //MODULO QUE TIENE TODAS LAS FUNCIONES QUE GENERAN PAYLOAD INICIAL (LOS QUE NO LLEVAN DATA DESPUES DEL "--") Y QUE POR LO GENERAL SE DAN EN EL TEMPLATE INICIAL
-import * as BaseJson from './basic_json_functions'
+//import * as BaseJson from './basic_json_functions'
+const BaseJson = require('./basic_json_functions')
 module.exports = {
     getEntradas:function(){
         let data=[{'title':'CALDO DE GALLINA',}]
