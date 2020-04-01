@@ -92,8 +92,8 @@ app.get('/pedidopostback',(req,res)=>{
         text+=`\nTotal a pagar: ${total}`
 
         callSendAPI(psid,{"text": text}).then(_ =>{
-            console.log(body)
             res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
+            templateAfterPedido(psid,body)
         })
     }
 });
@@ -134,10 +134,9 @@ function handleMessage(sender_psid,received_message){
 //handles messaging_postback events
 async function handlePostback(sender_psid,received_postback){
     const payload=received_postback.payload;
-    let data;
-    let elements;
 
     let response = payload.split('--') //push
+    let temp_data = (response.length>1)?response[1]:[]
 
     console.log(`payload postback: ${payload}`);
     //parametros del payload
@@ -172,8 +171,10 @@ async function handlePostback(sender_psid,received_postback){
             getDireccionesByUsuario(sender_psid)
             break;
         case 'RP_DIR_SELECCIONADA':
-            let temp_data = response[1] //id del objeto ubicacion, este ha sido seleccionado por el usuario
-            direccionSeleccionada(sender_psid,temp_data)
+            direccionSeleccionada(sender_psid,temp_data)//temp_data: id del objeto ubicacion, este ha sido seleccionado por el usuario
+            break;
+        case 'RP_PEDIR_TELEFONO':
+            pedirTelefono(sender_psid,body)
             break;
         case 'GET_STARTED':
             callSendAPI(sender_psid,{'text':'Bienvenido al delivery virtual :)'})
@@ -208,25 +209,6 @@ async function callSendAPI(sender_psid,response,messaging_type='RESPONSE'){
         })
     })
 }
-    // responses.forEach(async response=>{
-    //     requestBody = {
-    //         'recipient':{ 'id': sender_psid },
-    //         'messaging_type': messaging_type,
-    //         'message': response
-    //     }
-    //     await request({
-    //         'uri': 'https://graph.facebook.com/v6.0/me/messages',
-    //         'qs':{ 'access_token': process.env.PAGE_ACCESS_TOKEN },
-    //         'method': 'POST',
-    //         'json': requestBody
-    //     },(err,res,body)=>{
-    //         if (!err) {
-    //             console.log(`Mensaje respondido con el bot, response ${JSON.stringify(response)}`)
-    //         } else{
-    //             console.error('No se puede responder')
-    //         }
-    //     })
-    // })
 //end
 function getTextPedidoFromArray(data,title=''){ //el texto ya tiene un formato definido
     let temp_text =''
@@ -254,21 +236,57 @@ function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene e
         })
     })
 }
-async function saveLocation(body){
+async function templateAfterPedido(psid,body){
+    let data_encoded = encodeData(body)
+
+    data={
+        'text':'Si tu pedido está conforme, presiona CONTINUAR ✅, sino presiona MODIFICAR PEDIDO',
+        'buttons':[
+            {'type':'postback','title':'CONTINUAR ✅','payload':`RP_PEDIR_TELEFONO--${data_encoded}`},
+            {'type':'postback','title':'MODIFICAR PEDIDO','payload':`MODIFICAR_PEDIDO--${data_encoded}`}
+        ]
+    }
+    callSendAPI(psid,getTemplateButton(data))
+}
+async function pedirTelefono(psid,body_encoded){
+    let body = decodeData(body_encoded)
+    let usuario_selected = await getUsuarioByPsid(psid)
+    let telefono = {
+        numero: body.numero
+    }
+    if (usuario_selected.existe) { //si esta registrado en firebase por su psid
+        db.ref(`usuarios/${usuario_selected.key}/telefonos`).push(telefono)
+    } else{
+        await saveUser(psid,'telefonos',telefono)
+    }
+    data={
+        'text':'',
+        'buttons':[
+            {'type':'postback','title':'CONTINUAR ✅','payload':`RP_PEDIR_TELEFONO--${data_encoded}`},
+            {'type':'postback','title':'MODIFICAR PEDIDO','payload':`MODIFICAR_PEDIDO--${data_encoded}`}
+        ]
+    }
+    callSendAPI(psid,getTemplateButton(data))
+}
+async function getUsuarioByPsid(psid){ //retorna un objeto con los atributos "existe" cuyo valor boleano de acuerdo a si encuentra al usuario o no, "key": de existir, este atributo tiene la key del usuario
     let snapshot = await db.ref('usuarios').once('value')
     let usuarios = Base.fillInFirebase(snapshot)
 
     let usuario_selected={existe:false,key:null}
     //buscando psid del usuario
     usuarios.map(usuario =>{
-        if(usuario.psid==body.psid){ //si el usuario está registrado en firebase
+        if(usuario.psid==psid){ //si el usuario está registrado en firebase
             usuario_selected.existe=true
             usuario_selected.key=usuario.key
             return false //termina el bucle
         }
     })
+    return usuario_selected
+}
+async function saveLocation(body){
+    let usuario_selected=await getUsuarioByPsid(body.psid)
     //objeto de ubicacion
-    let temp_data={
+    let ubicacion={
         direccion: body.direccion,
         latitud: body.latitud,
         longitud: body.longitud,
@@ -276,30 +294,39 @@ async function saveLocation(body){
     }
     return new Promise((resolve,reject)=>{
         if(usuario_selected.existe){ //si el usuario esta registrado en firebase(por su psid)
-            db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).push(temp_data)
+            db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).push(ubicacion)
         } else{ //si el usuario no está registrado, se procede a registrar
-            let new_usuario={
-                psid: body.psid,
-                telefono:'',
-                ubicaciones:{
-                    "ubicacion_1": temp_data
-                }
-            }
-            db.ref('usuarios').push(new_usuario)
+            await saveUser(psid,'ubicaciones',ubicacion)
         }
         resolve({'text':'Genial! Haz agregado correctamente tu ubicación'})
     })
+}
+async function saveUser(psid,atributo,data){
+    let new_usuario={
+        psid: psid,
+        telefonos:'',
+        ubicaciones: ''
+    }
+    if (atributo=='ubicaciones') {
+        new_usuario.ubicaciones= { "ubicacion_1": data }
+    } else if (atributo=='telefonos') {
+        new_usuario.ubicaciones= { "telefono_1": data }
+    }
+    db.ref('usuarios').push(new_usuario)
+}
+function decodeData(encoded){
+    let buff = new Buffer(encoded,'base64')
+    return JSON.parse(buff.toString('ascii'))
+}
+function encodeData(decoded){
+    let buff = new Buffer(decoded)
+    return JSON.stringify(buff.toString('base64'))
 }
 function getBloqueInicial(){
     //data:es un bloque,un mensaje y contiene elementos(cards)
     let data=[
         {
             'buttons':[
-                // {
-                //     'type':'web_url','url':'https://sabor-peruano-app.herokuapp.com',
-                //     'title':'REALIZAR PEDIDO 🛒','webview_height_ratio':'tall',
-                //     'messenger_extensions':'true','fallback_url':'https://sabor-peruano-app.herokuapp.com'
-                // },
                 {'type':'postback','title':'REALIZAR PEDIDO 🛒','payload':'RP_DIRECCIONES'},
                 {'type':'postback','title':'VER MENÚ DEL DIA 🍛','payload':'MENU_DIA'}
             ],
@@ -505,6 +532,21 @@ function getButtons(buttons){//buttons: array que debe tener de forma obligatori
 function getAddLocationCard(psid){
     return {
         "title":'Añade una ubicación',
+        "image_url":`${Base.WEBHOOK_URL}/add_location.jpg`,
+        "subtitle":"",
+        "buttons":[
+            {
+                'type':'web_url','webview_height_ratio':'tall',
+                'url':`${Base.WEB_URL}/add_location`,
+                'title':'AGREGAR','messenger_extensions':'true',
+                'url':`${Base.WEB_URL}/add_location`
+            }
+        ]
+    }
+}
+function getAddNumberCard(psid){
+    return {
+        "title":'Añade un número de celular',
         "image_url":`${Base.WEBHOOK_URL}/add_location.jpg`,
         "subtitle":"",
         "buttons":[
