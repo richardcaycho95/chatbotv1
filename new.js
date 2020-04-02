@@ -97,9 +97,10 @@ app.get('/pedidopostback',(req,res)=>{
         text+=`\nEnviar a: ${ubicacion.referencia}`
         text+=`\nTotal a pagar: ${total}`
 
+        res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
+        
         typing(psid,4000).then( __ =>{
             callSendAPI(psid,{"text": text}).then(_ =>{
-                res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
                 templateAfterPedido(psid,body)
             })
         })
