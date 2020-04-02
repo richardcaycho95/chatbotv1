@@ -97,9 +97,11 @@ app.get('/pedidopostback',(req,res)=>{
         text+=`\nEnviar a: ${ubicacion.referencia}`
         text+=`\nTotal a pagar: ${total}`
 
-        callSendAPI(psid,{"text": text}).then(_ =>{
-            res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
-            templateAfterPedido(psid,body)
+        typing(psid,4000).then( __ =>{
+            callSendAPI(psid,{"text": text}).then(_ =>{
+                res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
+                templateAfterPedido(psid,body)
+            })
         })
     }
 });
@@ -237,7 +239,38 @@ async function callSendAPI(sender_psid,response,messaging_type='RESPONSE'){
     })
 }
 /*****END:FUNCIONES BASICAS PARA COMUNICAR CON EL BOT:END********/
+/**
+ * activa la acción "typing" y lo desactiva de acuerdo a los milisegundos asignado
+ * @param {*} psid id del usuario a enviar
+ * @param {*} time milisegundos activo la acción
+ */
+async function typing(psid,time){
+    let requestBody = {
+        "recipient":psid,
+        "sender_action":"typing_on"
+    }
+    await request({
+        'uri':`https://graph.facebook.com/v2.6/me/messages`,
+        'qs':{ 'access_token': Base.PAGE_ACCESS_TOKEN },
+        'method': 'POST',
+        'json': requestBody
 
+    },(err,res,body)=>{})
+    return new Promise((resolve,reject)=>{
+        setTimeout(() => {
+            requestBody.sender_action='typing_off'
+            request({
+                'uri':`https://graph.facebook.com/v2.6/me/messages`,
+                'qs':{ 'access_token': Base.PAGE_ACCESS_TOKEN },
+                'method': 'POST',
+                'json': requestBody
+            },(err,res,body)=>{
+                resolve()
+            })
+        }, time);
+    })
+    
+}
 
 function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene el saludo con el nombre
     return new Promise((resolve,reject)=>{
