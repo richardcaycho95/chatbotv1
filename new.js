@@ -85,7 +85,7 @@ app.get('/pedidopostback',(req,res)=>{
         let complementos=JSON.parse(body.complementos)
         let comentario=body.comentario
         let total = body.total
-        let ubicacion_key = body.ubicacion
+        let ubicacion = JSON.parse(body.ubicacion) //ahora se recibe el objeto que es un string
         
         let text = 'Tu pedido es el siguiente:\n'
         text+=Base.getTextPedidoFromArray(pedido.entradas,'ENTRADAS')
@@ -94,7 +94,7 @@ app.get('/pedidopostback',(req,res)=>{
         text+=Base.getTextPedidoFromArray(complementos.postres,'POSTRES')
 
         text+=(comentario=='')?'':`\nComentario: ${comentario}`
-        text+=`\nEnviar a: ${ubicacion_key}`
+        text+=`\nEnviar a: ${ubicacion.referencia}`
         text+=`\nTotal a pagar: ${total}`
 
         callSendAPI(psid,{"text": text}).then(_ =>{
@@ -122,26 +122,43 @@ app.get('/add_location_postback',(req,res)=>{
 /**************************************************************/
 /********FUNCIONES BASICAS PARA COMUNICAR CON EL BOT***********/
 /**************************************************************/
+//handle quick replies
+function handleQuickReply(sender_psid,message){
+    const payload=message.quick_reply.payload;
 
+    let response = payload.split('--')
+    let temp_data = (response.length>1)?response[1]:[]
+
+    switch (response[0]) {
+        case 'RP_TELEFONO_QR': //se recibe el numero seleccionado por QR
+            let numero = message.text
+            savePhoneNumber(sender_psid,numero,temp_data).then(data => {
+
+            })
+            break;
+        default:
+            break;
+    }
+}
 //handles message events
-function handleMessage(sender_psid,received_message){
+function handleMessage(sender_psid,received_message){ //received_message: body.entry[n].messaging[n].message
     let responses=[];//array de respuestas a enviar
     let response; //respuesta en formato json
-
-    if (received_message.text) {
+    if(received_message.quick_reply){ //si el mensaje posee un QR
+        handleQuickReply(sender_psid,received_message)
+    } else if (received_message.text) { //si no hay QR
         getSaludo(sender_psid).then(response =>{
             callSendAPI(sender_psid,response).then(r =>{ //creando el saludo
                 callSendAPI(sender_psid,getBloqueInicial()) //creando bloque inicial
             })
         })
-        //console.log(getBloqueInicial().attachment.payload)
     }
 }
 //handles messaging_postback events
 async function handlePostback(sender_psid,received_postback){
     const payload=received_postback.payload;
 
-    let response = payload.split('--') //push
+    let response = payload.split('--')
     let temp_data = (response.length>1)?response[1]:[]
 
     console.log(`payload postback: ${payload}`);
@@ -177,7 +194,7 @@ async function handlePostback(sender_psid,received_postback){
             getDireccionesByUsuario(sender_psid)
             break;
         case 'RP_DIR_SELECCIONADA':
-            direccionSeleccionada(sender_psid,temp_data)//temp_data: id del objeto ubicacion, este ha sido seleccionado por el usuario
+            direccionSeleccionada(sender_psid,temp_data)//temp_data: objeto ubicacion codificado, este ha sido seleccionado por el usuario
             break;
         case 'RP_PEDIR_TELEFONO':
             pedirTelefono(sender_psid,temp_data) //la data viene codificada desde /pedidopostback (body) y este pasa por templateAfterPedido para al final llegar a esta
@@ -185,6 +202,7 @@ async function handlePostback(sender_psid,received_postback){
         case 'RP_AGREGAR_TELEFONO':
             telefonoQR(sender_psid,temp_data)
             break;
+
         case 'GET_STARTED':
             callSendAPI(sender_psid,{'text':'Bienvenido al delivery virtual :)'})
             break;
@@ -239,10 +257,10 @@ function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene e
         })
     })
 }
-async function templateAfterPedido(psid,body){ //envia la data codificada en el payload
+async function templateAfterPedido(psid,body){ //envia la data de body (string)
     let data_encoded = Base.encodeData(body)
 
-    data={
+    let data={
         'text':'Si tu pedido está conforme, presiona CONTINUAR ✅, sino presiona MODIFICAR PEDIDO',
         'buttons':[
             {'type':'postback','title':'CONTINUAR ✅','payload':`RP_PEDIR_TELEFONO--${data_encoded}`},
@@ -253,9 +271,9 @@ async function templateAfterPedido(psid,body){ //envia la data codificada en el 
 }
 async function telefonoQR(psid,body_encoded){
     data = {
-        "text": "Pick a color:",
+        "text": "Digita tu número (o seleccionalo si es el que te mostramos 👇):",
         "quick_replies":[
-            { "content_type":"user_phone_number" }
+            { "content_type":"user_phone_number", "payload":`RP_TELEFONO_QR--${body_encoded}` }
         ]
     }
     callSendAPI(psid,data)
@@ -343,6 +361,21 @@ async function saveUser(psid,atributo,data){
     }
     db.ref('usuarios').push(new_usuario)
 }
+async function savePhoneNumber(psid,number,data){ //guarda el numero de celular del usuario; data:dat codificada que viene del hilo
+    let usuario_selected=await getUsuarioByPsid(body.psid)
+    let telefono={ numero:number }
+    return new Promise((resolve,reject)=>{
+        let data_decoded = Base.decodeData(data)
+        if(usuario_selected.existe){ //si el usuario esta registrado en firebase(por su psid)
+            let new_telefono = db.ref(`usuarios/${usuario_selected.key}/telefonos`).push(telefono)
+            data_decoded.telefono = {key:new_telefono.key,text:number}
+        } else{ //si el usuario no está registrado, se procede a registrar
+            saveUser(psid,'telefonos',telefono)
+        }
+        let data_encoded = Base.encodeData(data_decoded)
+        resolve(data_encoded)
+    })
+}
 function getBloqueInicial(){
     //data:es un bloque,un mensaje y contiene elementos(cards)
     let data=[
@@ -398,12 +431,13 @@ async function getDireccionesByUsuario(psid){
         let snapshot = await db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).once('value')
         let ubicaciones = Base.fillInFirebase(snapshot)
         ubicaciones.map(ubicacion =>{
+            let ubicacion_encoded = Base.encodeData(ubicacion) //aca inicia la codificacion de datos del pedido
             elements.push({
                 "title":ubicacion.referencia,
                 "subtitle":ubicacion.referencia,
                 "image_url":`https://maps.googleapis.com/maps/api/staticmap?center=${ubicacion.latitud},${ubicacion.longitud}&zoom=18&size=570x300&maptype=roadmap&markers=color:red%7Clabel:AQUI%7C${ubicacion.latitud},${ubicacion.longitud}&key=${Base.GMAP_API_KEY}`,
                 "buttons":[
-                    {'type':'postback','title':'SELECCIONAR','payload':`RP_DIR_SELECCIONADA--${ubicacion.key}`}
+                    {'type':'postback','title':'SELECCIONAR','payload':`RP_DIR_SELECCIONADA--${ubicacion_encoded}`}
                 ]
             })
         })
@@ -421,14 +455,16 @@ async function getDireccionesByUsuario(psid){
         })
     }
 }
-async function direccionSeleccionada(psid,ubicacion_key){
-    data={
+async function direccionSeleccionada(psid,ubicacion_encoded){ //se recoge el objeto ubicacion y se manda a la web
+    let ubicacion_decoded = Base.decodeData(ubicacion_encoded)
+    let str_ubicacion = JSON.stringify(ubicacion_decoded)
+    let data={
         'text':'Genial, para seguir con el pedido presiona CONTINUAR ✅',
         'buttons':[
             {
-                'type':'web_url','url':`${Base.WEB_URL}?ubicacion=${ubicacion_key}`,
+                'type':'web_url','url':`${Base.WEB_URL}?ubicacion=${str_ubicacion}`,
                 'title':'CONTINUAR ✅','webview_height_ratio':'tall',
-                'messenger_extensions':'true','fallback_url':`${Base.WEB_URL}?ubicacion=${ubicacion_key}`
+                'messenger_extensions':'true','fallback_url':`${Base.WEB_URL}?ubicacion=${str_ubicacion}`
             },
             {'type':'postback','title':'CAMBIAR DIRECCION','payload':'RP_DIRECCIONES'}
         ]
@@ -455,7 +491,7 @@ function getAddLocationCard(){
 }
 function getAddPhoneCard(data_encoded){
     return {
-        "title":'Añade un número de celular',
+        "title":'Añade un número de celular 📲:',
         "image_url":`${Base.WEBHOOK_URL}/add_location.jpg`,
         "subtitle":"",
         "buttons":[
