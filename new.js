@@ -364,15 +364,12 @@ async function getUsuarioByPsid(psid){
     let snapshot = await db.ref('usuarios').once('value')
     let usuarios = Base.fillInFirebase(snapshot)
 
-    let usuario_selected
+    let usuario_selected = {existe:false,key:null}
     //buscando psid del usuario
     usuarios.map(usuario =>{
         if(usuario.psid==psid){ //si el usuario está registrado en firebase
-            usuario_selected=usuario
             usuario_selected.existe=true
             return false //termina el bucle
-        } else{
-            usuario_selected={existe:false}
         }
     })
     return usuario_selected
