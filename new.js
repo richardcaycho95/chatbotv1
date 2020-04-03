@@ -126,21 +126,18 @@ app.get('/add_location_postback',(req,res)=>{
 /********FUNCIONES BASICAS PARA COMUNICAR CON EL BOT***********/
 /**************************************************************/
 //handle quick replies
-function handleQuickReply(sender_psid,message){
+async function handleQuickReply(sender_psid,message){
     const payload=message.quick_reply.payload;
 
-    let response = payload.split('--')
-    let temp_data = (response.length>1)?response[1]:[]
-
-    switch (response[0]) {
-        case 'RP_TELEFONO_QR': //se recibe el numero seleccionado por QR
-            let numero = message.text
-            savePhoneNumber(sender_psid,numero,temp_data).then(data => {
-
+    let phone = {initial: payload.substr(0,3), size: payload.length }
+    console.log(phone)
+    if (phone.initial =='+51' && phone.size == 12) { //si el texto tiene indicios de ser el celular
+        let data_encoded = await getPrePedidoByPsid(sender_psid)
+        if (data_encoded!='') { //si la data aun no se ha eliminado
+            savePhoneNumber(sender_psid,payload,data_encoded).then(response => {
+                callSendAPI(sender_psid,response)
             })
-            break;
-        default:
-            break;
+        }
     }
 }
 //handles message events
@@ -200,7 +197,10 @@ async function handlePostback(sender_psid,received_postback){
             direccionSeleccionada(sender_psid,temp_data)//temp_data: objeto ubicacion codificado, este ha sido seleccionado por el usuario
             break;
         case 'RP_PEDIR_TELEFONO':
-            pedirTelefono(sender_psid,temp_data) //la data viene codificada desde /pedidopostback (body) y este pasa por templateAfterPedido para al final llegar a esta
+            //desde acá se empieza a guardar la data codificada en firebase
+            savePrePedido(sender_psid,temp_data).then (_ =>{
+                pedirTelefono(sender_psid,temp_data) //la data viene codificada desde /pedidopostback (body) y este pasa por templateAfterPedido para al final llegar a esta
+            })
             break;
         case 'RP_AGREGAR_TELEFONO':
             telefonoQR(sender_psid,temp_data)
@@ -306,11 +306,11 @@ async function templateAfterPedido(psid,body){ //envia la data de body (string)
     }
     callSendAPI(psid,BaseJson.getTemplateButton(data))
 }
-async function telefonoQR(psid,body_encoded){
+async function telefonoQR(psid){
     data = {
         "text": "Digita tu número (o seleccionalo si es el que te mostramos 👇):",
         "quick_replies":[
-            { "content_type":"user_phone_number", "payload":`RP_TELEFONO_QR--${body_encoded}` }
+            { "content_type":"user_phone_number"}
         ]
     }
     callSendAPI(psid,data)
@@ -352,17 +352,27 @@ async function pedirTelefono(psid,body_encoded){ //muestra los telefonos registr
         }
     }
 }
-async function getUsuarioByPsid(psid){ //retorna un objeto con los atributos "existe" cuyo valor boleano de acuerdo a si encuentra al usuario o no, "key": de existir, este atributo tiene la key del usuario
+/**
+ * Busca al usuario por su psid y devuelve un objeto (existe:Boleean,key:string)
+ * @param {*} psid Id del usuario de messenger
+ */
+/**
+ * devuelve el objeto usuario(en caso exista) y se agrega el atributo 'existe' = true, si no existe se devuelve solo el atributo 'existe' =false
+ * @param {*} psid id del usuario de messenger
+ */
+async function getUsuarioByPsid(psid){
     let snapshot = await db.ref('usuarios').once('value')
     let usuarios = Base.fillInFirebase(snapshot)
 
-    let usuario_selected={existe:false,key:null}
+    let usuario_selected
     //buscando psid del usuario
     usuarios.map(usuario =>{
         if(usuario.psid==psid){ //si el usuario está registrado en firebase
+            usuario_selected=usuario
             usuario_selected.existe=true
-            usuario_selected.key=usuario.key
             return false //termina el bucle
+        } else{
+            usuario_selected.existe=false
         }
     })
     return usuario_selected
@@ -398,11 +408,17 @@ async function saveUser(psid,atributo,data){
     }
     db.ref('usuarios').push(new_usuario)
 }
-async function savePhoneNumber(psid,number,data){ //guarda el numero de celular del usuario; data:dat codificada que viene del hilo
+/**
+ * guarda el numero de celular del usuario y devuelve la data codificada agregando atributo 'celular'
+ * @param {*} psid id del usuario
+ * @param {*} number payload, numero del usuario mediante QR
+ * @param {*} data_encoded data codificada que se trae desde firebase
+ */
+async function savePhoneNumber(psid,number,data_encoded){
     let usuario_selected=await getUsuarioByPsid(body.psid)
     let telefono={ numero:number }
     return new Promise((resolve,reject)=>{
-        let data_decoded = Base.decodeData(data)
+        let data_decoded = Base.decodeData(data_encoded)
         if(usuario_selected.existe){ //si el usuario esta registrado en firebase(por su psid)
             let new_telefono = db.ref(`usuarios/${usuario_selected.key}/telefonos`).push(telefono)
             data_decoded.telefono = {key:new_telefono.key,text:number}
@@ -459,6 +475,51 @@ function getBloqueInicial(){
     })
     //elements=JSON.stringify(elements)
     return BaseJson.getGenericBlock(elements)
+}
+async function savePrePedido(psid,data_encoded){
+    let usuario = await getUsuarioByPsid(psid)
+    if (usuario.existe) {
+        let today = Base.getDate()
+        return new Promise((resolve,reject) =>{
+            db.ref(`usuarios/${usuario_selected.key}`).update({
+                'created_at':today,
+                'pre_pedido':data_encoded
+            })
+            resolve()
+        })
+    }
+}
+/**
+ * setea los atributos 'created_at' y 'pre_pedido' a vacio
+ * @param {*} usuarioRef referencia de firebase del usuario seleccionado
+ */
+async function deletePrePedido(usuarioRef){
+    usuarioRef.update({
+        'created_at':'',
+        'pre_pedido':''
+    })
+}
+/**
+ * devuelve la data codificada (si hubiera) del usuario identificado por psid, sino devuelve string vacio
+ * @param {number} psid  id del usuario
+ */
+async function getPrePedidoByPsid(psid){
+    let usuario = await getUsuarioByPsid(psid)
+    let usuarioRef = db.ref(`usuarios/${usuario.key}`)
+
+    if (usuario.existe) {
+        let diff = Math.abs(new Date()-new Date(usuario.created_at)) //actual - create_at = diff in ms
+        let minutes = Math.floor((diff/1000)/60)
+
+        console.log(`minutos: ${minutes}`)
+
+        if (minutes>=30) { //si el pre_pedido pasa los 30 minutos, se elimina
+            await deletePrePedido(usuarioRef)
+            return '' //no hay data del pre_pedido
+        } else{
+            return usuario.pre_pedido
+        }
+    }
 }
 async function getDireccionesByUsuario(psid){
     let usuario_selected = await getUsuarioByPsid(psid)

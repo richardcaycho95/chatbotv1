@@ -36,6 +36,18 @@ module.exports={
       let buff = Buffer.from(JSON.stringify(decoded))
       return buff.toString('base64')
   },
+  getDate:function(date=''){
+    if (date=='') {
+      let today = new Date()
+      let dd = String(today.getDate()).padStart(2, '0');
+      let mm = String(today.getMonth() + 1).padStart(2, '0')
+      let yyyy = today.getFullYear()
+      let h = String(today.getHours()).padStart(2,'0')
+      let m = String(today.getMinutes()).padStart(2,'0')
+      let i = String(today.getSeconds()).padStart(2,'0')
+      return `${yyyy}-${mm}-${dd} ${h}:${m}:${i}`
+    }
+  },
   GMAP_API_KEY: 'AIzaSyDxIn9qXbWD1lvSzHCiphSNw7_jiPK6obw',
   WEBHOOK_URL: 'https://vizarro.herokuapp.com',
   FALLBACK_URL: 'https://restaurante-saborperuano.netlify.com/fallback',
