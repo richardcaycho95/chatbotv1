@@ -372,7 +372,7 @@ async function getUsuarioByPsid(psid){
             usuario_selected.existe=true
             return false //termina el bucle
         } else{
-            usuario_selected.existe=false
+            usuario_selected={existe:false}
         }
     })
     return usuario_selected
