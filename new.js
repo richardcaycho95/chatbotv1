@@ -479,7 +479,7 @@ async function savePrePedido(psid,data_encoded){
     if (usuario.existe) {
         let today = Base.getDate()
         return new Promise((resolve,reject) =>{
-            db.ref(`usuarios/${usuario_selected.key}`).update({
+            db.ref(`usuarios/${usuario.key}`).update({
                 'created_at':today,
                 'pre_pedido':data_encoded
             })
