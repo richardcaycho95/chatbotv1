@@ -413,7 +413,7 @@ async function saveUser(psid,atributo,data){
  * @param {*} data_encoded data codificada que se trae desde firebase
  */
 async function savePhoneNumber(psid,number,data_encoded){
-    let usuario_selected=await getUsuarioByPsid(body.psid)
+    let usuario_selected=await getUsuarioByPsid(psid)
     let telefono={ numero:number }
     return new Promise((resolve,reject)=>{
         let data_decoded = Base.decodeData(data_encoded)
