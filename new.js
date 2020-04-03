@@ -370,6 +370,7 @@ async function getUsuarioByPsid(psid){
         if(usuario.psid==psid){ //si el usuario está registrado en firebase
             usuario_selected.existe = true
             usuario_selected.key = usuario.key
+            usuario_selected.pre_pedido = usuario.pre_pedido
             return false //termina el bucle
         }
     })
@@ -415,8 +416,8 @@ async function saveUser(psid,atributo,data){
 async function savePhoneNumber(psid,number,data_encoded){
     let usuario_selected=await getUsuarioByPsid(psid)
     let telefono={ numero:number }
+    let data_decoded = Base.decodeData(data_encoded)
     return new Promise((resolve,reject)=>{
-        let data_decoded = Base.decodeData(data_encoded)
         if(usuario_selected.existe){ //si el usuario esta registrado en firebase(por su psid)
             let new_telefono = db.ref(`usuarios/${usuario_selected.key}/telefonos`).push(telefono)
             data_decoded.telefono = {key:new_telefono.key,text:number}
