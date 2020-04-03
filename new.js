@@ -251,26 +251,22 @@ async function typing(psid,time){
         "sender_action":"typing_on"
     }
     await request({
-        'uri':`https://graph.facebook.com/v2.6/me/messages`,
+        'uri':`https://graph.facebook.com/v6.0/me/messages`,
         'qs':{ 'access_token': Base.PAGE_ACCESS_TOKEN },
         'method': 'POST',
         'json': requestBody
 
     },(err,res,body)=>{
-        console.log(err)
-        console.log(res)
     })
     return new Promise((resolve,reject)=>{
         setTimeout(() => {
             requestBody.sender_action='typing_off'
             request({
-                'uri':`https://graph.facebook.com/v2.6/me/messages`,
+                'uri':`https://graph.facebook.com/v6.0/me/messages`,
                 'qs':{ 'access_token': Base.PAGE_ACCESS_TOKEN },
                 'method': 'POST',
                 'json': requestBody
             },(err,res,body)=>{
-                console.log(err)
-                console.log(res)
                 resolve()
             })
         }, time);
