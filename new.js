@@ -368,7 +368,8 @@ async function getUsuarioByPsid(psid){
     //buscando psid del usuario
     usuarios.map(usuario =>{
         if(usuario.psid==psid){ //si el usuario está registrado en firebase
-            usuario_selected.existe=true
+            usuario_selected.existe = true
+            usuario_selected.key = usuario.key
             return false //termina el bucle
         }
     })
