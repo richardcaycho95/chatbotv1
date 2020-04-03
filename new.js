@@ -423,8 +423,7 @@ async function savePhoneNumber(psid,number,data_encoded){
         } else{ //si el usuario no está registrado, se procede a registrar
             saveUser(psid,'telefonos',telefono)
         }
-        let data_encoded = Base.encodeData(data_decoded)
-        resolve(data_encoded)
+        resolve(Base.encodeData(data_decoded))
     })
 }
 function getBloqueInicial(){
