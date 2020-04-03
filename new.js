@@ -247,7 +247,9 @@ async function callSendAPI(sender_psid,response,messaging_type='RESPONSE'){
  */
 async function typing(psid,time){
     let requestBody = {
-        "recipient":psid,
+        "recipient":{
+            "id":psid
+        },
         "sender_action":"typing_on"
     }
     await request({
