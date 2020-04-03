@@ -98,8 +98,8 @@ app.get('/pedidopostback',(req,res)=>{
         text+=`\nTotal a pagar: ${total}`
 
         res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
-        
-        typing(psid,4000).then( __ =>{
+
+        typing(psid,6000).then( __ =>{
             callSendAPI(psid,{"text": text}).then(_ =>{
                 templateAfterPedido(psid,body)
             })
@@ -256,7 +256,10 @@ async function typing(psid,time){
         'method': 'POST',
         'json': requestBody
 
-    },(err,res,body)=>{})
+    },(err,res,body)=>{
+        console.log(err)
+        console.log(res)
+    })
     return new Promise((resolve,reject)=>{
         setTimeout(() => {
             requestBody.sender_action='typing_off'
@@ -266,6 +269,8 @@ async function typing(psid,time){
                 'method': 'POST',
                 'json': requestBody
             },(err,res,body)=>{
+                console.log(err)
+                console.log(res)
                 resolve()
             })
         }, time);
