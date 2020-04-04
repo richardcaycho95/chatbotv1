@@ -321,9 +321,6 @@ async function pedirTelefono(psid,body_encoded){ //muestra los telefonos registr
     let data_decoded = Base.decodeData(body_encoded)
     let usuario_selected = await getUsuarioByPsid(psid)
     let add_phone = getAddPhoneCard(body_encoded)
-    // let telefono = {
-    //     numero: body.numero
-    // }
     let elements = []
     if (usuario_selected.existe) { //si esta registrado en firebase por su psid, se procede a comprobar si tiene telefonos registrados
         let snapshot = await db.ref(`usuarios/${usuario_selected.key}/telefonos`).once('value')
@@ -349,7 +346,7 @@ async function pedirTelefono(psid,body_encoded){ //muestra los telefonos registr
             elements.push(add_phone)
             text={'text':'📌 Agrega un número de celular para avisarte sobre el estado de tu pedido:'}
             callSendAPI(psid,text).then( response =>{
-                callSendAPI(psid,BaseJson.getGenericBlock(elements)).then( _ =>{})
+                callSendAPI(psid,BaseJson.getTemplateButton(elements)).then( _ =>{})
             })
         }
     }
