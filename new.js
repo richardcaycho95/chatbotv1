@@ -331,16 +331,18 @@ async function pedirTelefono(psid,body_encoded){ //muestra los telefonos registr
                 let data_encoded = Base.encodeData(data_decoded)
                 //el payload viene arrastrando la data del pedido, ubicacion y ahora se añade el telefono seleccionado
                 elements.push({
-                    "text":telefono.numero,
+                    "title":telefono.numero,
+                    "image_url":``,
+                    "subtitle":"",
                     "buttons":[
-                        {'type':'postback','title':'SELECCIONAR','payload':`RP_TELEFONO_SELECCIONADO--R`}
+                        {'type':'postback','title':'AGREGAR','payload':`RP_TELEFONO_SELECCIONADO--${data_encoded}`},
                     ]
                 })
             })
             //elements.push(add_phone)
             text={'text':'Escoge o agrega un número de celular 📲:'}
             callSendAPI(psid,text).then( response =>{
-                callSendAPI(psid,BaseJson.getTemplateButton(elements)).then( _ =>{})
+                callSendAPI(psid,BaseJson.getGenericBlock(elements)).then( _ =>{})
             })
         } else{ //no tiene telefonos registrados
             elements.push(add_phone)

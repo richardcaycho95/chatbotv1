@@ -2,7 +2,7 @@
 var self = module.exports = {
     getButtons:function(buttons){//buttons: array que debe tener de forma obligatoria lso campos (type,title,payload)
         let temp=[];
-        buttons.forEach((button)=>{
+        buttons.map((button)=>{
             if (button.type==='web_url') {
                 format={ 
                     "type":button.type, "url":button.url,"title":button.title,
@@ -29,14 +29,14 @@ var self = module.exports = {
             }
         }
     },
-    getTemplateButton:function(data){ //debe tener los atributos[text(string),buttons(array)]
+    getTemplateButton:function(elements){ //debe tener los atributos[text(string),buttons(array)]
         return {
             'attachment':{
                 "type":"template",
                 "payload":{
                 "template_type":"button",
-                "text":data.text,
-                "buttons":self.getButtons(data.buttons)
+                "text":elements.text,
+                "buttons":self.getButtons(elements.buttons)
                 }
             }
         }
