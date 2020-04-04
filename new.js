@@ -336,7 +336,7 @@ async function pedirTelefono(psid,body_encoded){ //muestra los telefonos registr
                 elements.push({
                     "text":telefono.numero,
                     "buttons":[
-                        {'type':'postback','title':'SELECCIONAR','payload':`RP_TELEFONO_SELECCIONADO--${data_encoded}`}
+                        {'type':'postback','title':'SELECCIONAR','payload':`RP_TELEFONO_SELECCIONADO--R`}
                     ]
                 })
             })
