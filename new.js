@@ -337,16 +337,16 @@ async function pedirTelefono(psid,body_encoded){ //muestra los telefonos registr
                     ]
                 })
             })
-            elements.push(add_phone)
+            //elements.push(add_phone)
             text={'text':'Escoge o agrega un número de celular 📲:'}
             callSendAPI(psid,text).then( response =>{
-                callSendAPI(psid,BaseJson.getGenericBlock(elements)).then( _ =>{})
+                callSendAPI(psid,BaseJson.getTemplateButton(elements)).then( _ =>{})
             })
         } else{ //no tiene telefonos registrados
             elements.push(add_phone)
             text={'text':'📌 Agrega un número de celular para avisarte sobre el estado de tu pedido:'}
             callSendAPI(psid,text).then( response =>{
-                callSendAPI(psid,BaseJson.getTemplateButton(elements)).then( _ =>{})
+                callSendAPI(psid,BaseJson.getGenericBlock(elements)).then( _ =>{})
             })
         }
     }
