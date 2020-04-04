@@ -135,7 +135,8 @@ async function handleQuickReply(sender_psid,message){
         let data_encoded = await getPrePedidoByPsid(sender_psid)
         if (data_encoded!='') { //si la data aun no se ha eliminado
             savePhoneNumber(sender_psid,payload,data_encoded).then(response => {
-                callSendAPI(sender_psid,response)
+                console.log(`respuesta de save phone: ${response}`)
+                pedirTelefono(psid,response)
             })
         }
     }
@@ -145,6 +146,7 @@ function handleMessage(sender_psid,received_message){ //received_message: body.e
     let responses=[];//array de respuestas a enviar
     let response; //respuesta en formato json
     if(received_message.quick_reply){ //si el mensaje posee un QR
+        console.log('estamos en QR')
         handleQuickReply(sender_psid,received_message)
     } else if (received_message.text) { //si no hay QR
         getSaludo(sender_psid).then(response =>{
@@ -332,7 +334,7 @@ async function pedirTelefono(psid,body_encoded){ //muestra los telefonos registr
                 let data_encoded = Base.encodeData(data_decoded)
                 //el payload viene arrastrando la data del pedido, ubicacion y ahora se añade el telefono seleccionado
                 elements.push({
-                    "text":'',
+                    "text":telefono.numero,
                     "buttons":[
                         {'type':'postback','title':'SELECCIONAR','payload':`RP_TELEFONO_SELECCIONADO--${data_encoded}`}
                     ]
@@ -353,10 +355,6 @@ async function pedirTelefono(psid,body_encoded){ //muestra los telefonos registr
     }
 }
 /**
- * Busca al usuario por su psid y devuelve un objeto (existe:Boleean,key:string)
- * @param {*} psid Id del usuario de messenger
- */
-/**
  * devuelve el objeto usuario(en caso exista) y se agrega el atributo 'existe' = true, si no existe se devuelve solo el atributo 'existe' =false
  * @param {*} psid id del usuario de messenger
  */
@@ -371,6 +369,7 @@ async function getUsuarioByPsid(psid){
             usuario_selected.existe = true
             usuario_selected.key = usuario.key
             usuario_selected.pre_pedido = usuario.pre_pedido
+            usuario_selected.created_at = usuario.created_at
             return false //termina el bucle
         }
     })
@@ -398,7 +397,9 @@ async function saveUser(psid,atributo,data){
     let new_usuario={
         psid: psid,
         telefonos:'',
-        ubicaciones: ''
+        ubicaciones: '',
+        created_at:'',
+        pre_pedido: ''
     }
     if (atributo=='ubicaciones') {
         new_usuario.ubicaciones= { "ubicacion_1": data }
@@ -506,7 +507,7 @@ async function getPrePedidoByPsid(psid){
     let usuarioRef = db.ref(`usuarios/${usuario.key}`)
 
     if (usuario.existe) {
-        let diff = Math.abs(new Date()-new Date(usuario.created_at)) //actual - create_at = diff in ms
+        let diff = Math.abs(new Date(Base.getDate())-new Date(usuario.created_at)) //actual - create_at = diff in ms
         let minutes = Math.floor((diff/1000)/60)
 
         console.log(`minutos: ${minutes}`)
