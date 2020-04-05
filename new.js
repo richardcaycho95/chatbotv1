@@ -158,7 +158,7 @@ async function handleMessage(sender_psid,received_message){
     if(received_message.quick_reply){ //si el mensaje posee un QR
         handleQuickReply(sender_psid,received_message)
     } else if (received_message.text) { //si no hay QR
-        let data = await getPrePedidoByPsid(psid)
+        let data = await getPrePedidoByPsid(sender_psid)
         if (data=='') { //si no hay prepedido
             getSaludo(sender_psid).then(response =>{
                 callSendAPI(sender_psid,response).then(r =>{ //creando el saludo
