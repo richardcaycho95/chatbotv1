@@ -102,7 +102,7 @@ app.get('/pedidopostback',(req,res)=>{
         text+=Base.getTextPedidoFromArray(data.complementos.gaseosas,'GASEOSAS')
         text+=Base.getTextPedidoFromArray(data.complementos.postres,'POSTRES')
 
-        text+=(comentario=='')?'':`\nComentario: ${data.comentario}`
+        text+=(data.comentario=='')?'':`\nComentario: ${data.comentario}`
         text+=`\nEnviar a: ${data.ubicacion.referencia}`
         text+=`\nTotal a pagar: ${data.total}`
 
