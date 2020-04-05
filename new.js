@@ -80,28 +80,37 @@ app.get('/pedidopostback',(req,res)=>{
     let responses=[]
     let body = req.query
     if(body){
-        let psid=body.psid
-        let pedido=JSON.parse(body.pedido)
-        let complementos=JSON.parse(body.complementos)
-        let comentario=body.comentario
-        let total = body.total
-        let ubicacion = JSON.parse(body.ubicacion) //ahora se recibe el objeto que es un string
+        let data_decoded = Base.decodeData(body.ubicacion)
+        let data = {
+            psid: body.psid,
+            pedido: JSON.parse(body.pedido),
+            complementos: JSON.parse(body.complementos),
+            comentario: body.comentario,
+            total: body.total,
+            ubicacion: {
+                referencia:data_decoded.referencia,
+                direccion: data_decoded.direccion,
+                latitud: data_decoded.latitud
+            },
+            flujo:data_decoded.flujo,
+            created_at:Base.getDate()
+        }
         
         let text = 'Tu pedido es el siguiente:\n'
-        text+=Base.getTextPedidoFromArray(pedido.entradas,'ENTRADAS')
-        text+=Base.getTextPedidoFromArray(pedido.segundos,'SEGUNDOS')
-        text+=Base.getTextPedidoFromArray(complementos.gaseosas,'GASEOSAS')
-        text+=Base.getTextPedidoFromArray(complementos.postres,'POSTRES')
+        text+=Base.getTextPedidoFromArray(data.pedido.entradas,'ENTRADAS')
+        text+=Base.getTextPedidoFromArray(data.pedido.segundos,'SEGUNDOS')
+        text+=Base.getTextPedidoFromArray(data.complementos.gaseosas,'GASEOSAS')
+        text+=Base.getTextPedidoFromArray(data.complementos.postres,'POSTRES')
 
-        text+=(comentario=='')?'':`\nComentario: ${comentario}`
-        text+=`\nEnviar a: ${ubicacion.referencia}`
-        text+=`\nTotal a pagar: ${total}`
+        text+=(comentario=='')?'':`\nComentario: ${data.comentario}`
+        text+=`\nEnviar a: ${data.ubicacion.referencia}`
+        text+=`\nTotal a pagar: ${data.total}`
 
         res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
 
-        typing(psid,6000).then( __ =>{
+        typing(psid,5000).then( __ =>{
             callSendAPI(psid,{"text": text}).then(_ =>{
-                templateAfterPedido(psid,body)
+                templateAfterPedido(psid,data)
             })
         })
     }
@@ -115,7 +124,7 @@ app.get('/add_location_postback',(req,res)=>{
             res.status(200).send('<h1>Por favor cierra esta ventana para seguir con el pedido</h1>')
             //luego de guardar, se llama a la funcion para obtener las direcciones
             callSendAPI(psid,response).then( _ => {
-                getDireccionesByUsuario(psid)
+                templateDirecciones(psid)
             })
         })
     } else{
@@ -135,25 +144,35 @@ async function handleQuickReply(sender_psid,message){
         let data_encoded = await getPrePedidoByPsid(sender_psid)
         if (data_encoded!='') { //si la data aun no se ha eliminado
             savePhoneNumber(sender_psid,payload,data_encoded).then(response => {
-                console.log(`respuesta de save phone: ${response}`)
                 pedirTelefono(psid,response)
             })
         }
     }
 }
-//handles message events
-function handleMessage(sender_psid,received_message){ //received_message: body.entry[n].messaging[n].message
-    let responses=[];//array de respuestas a enviar
-    let response; //respuesta en formato json
+/**
+ * handles message events
+ * @param {Number} sender_psid id del usuario 
+ * @param {*} received_message body.entry[n].messaging[n].message
+ */
+async function handleMessage(sender_psid,received_message){
     if(received_message.quick_reply){ //si el mensaje posee un QR
-        console.log('estamos en QR')
         handleQuickReply(sender_psid,received_message)
     } else if (received_message.text) { //si no hay QR
-        getSaludo(sender_psid).then(response =>{
-            callSendAPI(sender_psid,response).then(r =>{ //creando el saludo
-                callSendAPI(sender_psid,getBloqueInicial()) //creando bloque inicial
+        let data = await getPrePedidoByPsid(psid)
+        if (data=='') { //si no hay prepedido
+            getSaludo(sender_psid).then(response =>{
+                callSendAPI(sender_psid,response).then(r =>{ //creando el saludo
+                    callSendAPI(sender_psid,getBloqueInicial()) //creando bloque inicial
+                })
             })
-        })
+        } else{
+            //si el usuario tiene un pre pedido pendiente
+            data = {
+                'text':'Tienes un pedido en proceso... ¿Deseas cancelarlo?',
+                'buttons':[{type:'postback',title:'SI',payload:'CANCELAR_PREPEDIDO'},{type:'postback',title:'NO',payload:'SEGUIR_PREPEDIDO'}]
+            }
+            callSendAPI(sender_psid,{})
+        }
     }
 }
 //handles messaging_postback events
@@ -161,9 +180,11 @@ async function handlePostback(sender_psid,received_postback){
     const payload=received_postback.payload;
 
     let response = payload.split('--')
-    let temp_data = (response.length>1)?response[1]:[]
+    let temp_data = (response.length>1)?response[1]:''
 
-    console.log(`payload postback: ${payload}`);
+    let pre_pedido = await getPrePedidoByPsid(sender_psid)
+
+    console.log(`payload postback: ${payload}`)
     //parametros del payload
     switch (response[0]) {
         case 'home':
@@ -184,7 +205,7 @@ async function handlePostback(sender_psid,received_postback){
             console.log(comple)
             break;
         case 'postres':
-            //mensaje donde se muestra los postres y se llama a la accción
+            //mensaje donde se muestra los postres y se llama a la acción
             //se debe recorrer el bucle para leer los formatos json
             let postres=BasePayload.getPostres()
             postres.map((response)=>{
@@ -192,22 +213,46 @@ async function handlePostback(sender_psid,received_postback){
             })
             console.log(postres)
             break;
-        case 'RP_DIRECCIONES':
-            getDireccionesByUsuario(sender_psid)
+        case 'RP_DIRECCIONES': //cuando el usuario selecciona el botón "REALIZAR PEDIDO"
+            if (pre_pedido!='') { //si hay un pre_pedido
+                managePrePedido(psid,pre_pedido)
+            } else{ //si no hay pre_pedido
+                templateDirecciones(sender_psid)
+            }
             break;
-        case 'RP_DIR_SELECCIONADA':
-            direccionSeleccionada(sender_psid,temp_data)//temp_data: objeto ubicacion codificado, este ha sido seleccionado por el usuario
+        case 'RP_DIR_SELECCIONADA': //cuando el usuario selecciona una dirección mostrada, aca recien se empezará a crear el pre_pedido
+            if (pre_pedido!='') { //si hay un pre_pedido, mandar al flujo
+                managePrePedido(psid,pre_pedido)
+            } else{ //si no hay pre_pedido
+                direccionSeleccionada(sender_psid,response[1])//response[1]: objeto ubicacion codificado, este ha sido seleccionado por el usuario
+            }
             break;
-        case 'RP_PEDIR_TELEFONO':
-            //desde acá se empieza a guardar la data codificada en firebase
-            savePrePedido(sender_psid,temp_data).then (_ =>{
-                pedirTelefono(sender_psid,temp_data) //la data viene codificada desde /pedidopostback (body) y este pasa por templateAfterPedido para al final llegar a esta
-            })
+        case 'RP_PEDIR_TELEFONO'://cuando el usuario confirma que su pedido es conforme
+            if (pre_pedido!='') {
+                pedirTelefono(sender_psid,pre_pedido) //la data viene codificada desde /pedidopostback (data) y este pasa por templateAfterPedido para al final llegar a esta
+            } else{
+                managePrePedido(sender_psid,pre_pedido)
+            }
             break;
         case 'RP_AGREGAR_TELEFONO':
             telefonoQR(sender_psid,temp_data)
             break;
+        case 'RP_TELEFONO_SELECCIONADO': //cuando se ha seleccionado un telefono
+            if (pre_pedido!='') {
+                templateTelefonoSeleccionado(sender_psid,response[1])
+            } else{
+                managePrePedido(sender_psid,pre_pedido)
+            }
+        case 'CANCELAR_PREPEDIDO':
+            deletePrePedido(psid).then(_ =>{
+                callSendAPI(psid,{text:'Nuestro chatbot está listo a recibir tus ordenes, solo escibenos cuando desees 😊'})
+            })
+            break;
+        case 'SEGUIR_PREPEDIDO':
+            callSendAPI(psid,{text:'Continuemos 😎 ...'}).then( _ =>{
 
+            })
+                break;
         case 'GET_STARTED':
             callSendAPI(sender_psid,{'text':'Bienvenido al delivery virtual :)'})
             break;
@@ -215,8 +260,12 @@ async function handlePostback(sender_psid,received_postback){
             break;
     }
 }
-//envia mensajes de respuesta a facebook mediante la "send API"
-//responses:array con los mensajes que se enviará
+/**
+ * envia mensajes de respuesta a facebook mediante la "send API" 
+ * @param {Number} sender_psid id del usuario
+ * @param {JSON} response mensajes que se enviará, estructura json
+ * @param {String} messaging_type tipo de mensaje
+ */
 async function callSendAPI(sender_psid,response,messaging_type='RESPONSE'){
     console.log(`response en callSendAPI: ${JSON.stringify(response)}`)
     requestBody = {
@@ -244,8 +293,8 @@ async function callSendAPI(sender_psid,response,messaging_type='RESPONSE'){
 /*****END:FUNCIONES BASICAS PARA COMUNICAR CON EL BOT:END********/
 /**
  * activa la acción "typing" y lo desactiva de acuerdo a los milisegundos asignado
- * @param {*} psid id del usuario a enviar
- * @param {*} time milisegundos activo la acción
+ * @param {Number} psid id del usuario a enviar
+ * @param {Number} time milisegundos activo la acción
  */
 async function typing(psid,time){
     let requestBody = {
@@ -277,8 +326,11 @@ async function typing(psid,time){
     })
     
 }
-
-function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene el saludo con el nombre
+/**
+ * retorna una promesa con el objeto que tiene el saludo con el nombre
+ * @param {Number} sender_psid id del usuario
+ */
+function getSaludo(sender_psid){
     return new Promise((resolve,reject)=>{
         request({
             'uri':`https://graph.facebook.com/${sender_psid}?fields=first_name,last_name,profile_pic&access_token=${Base.PAGE_ACCESS_TOKEN}`,
@@ -286,9 +338,7 @@ function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene e
         },(err,res,body)=>{
             if (!err) {
                 body=JSON.parse(body)
-                console.log('Obteniendo nombre de usuario')
-                console.log(body)
-                resolve({'text': `Hola ${body.first_name} 😄\nDesliza para que veas nuestras opciones 👇👇👇`})
+                resolve({'text': `Hola ${body.first_name} 😊\nDesliza para que veas nuestras opciones 👇👇👇`})
             } else{
                 console.error('No se puede responder')
                 reject()
@@ -296,24 +346,28 @@ function getSaludo(sender_psid){ //retorna una promesa con el objeto que tiene e
         })
     })
 }
-async function templateAfterPedido(psid,body){ //envia la data de body (string)
-    let data_encoded = Base.encodeData(body)
-
-    let data={
-        'text':'Si tu pedido está conforme, presiona CONTINUAR ✅, sino presiona MODIFICAR PEDIDO',
-        'buttons':[
-            {'type':'postback','title':'CONTINUAR ✅','payload':`RP_PEDIR_TELEFONO--${data_encoded}`},
-            {'type':'postback','title':'MODIFICAR PEDIDO','payload':`MODIFICAR_PEDIDO--${data_encoded}`}
-        ]
-    }
-    callSendAPI(psid,BaseJson.getTemplateButton(data))
+/**
+ * envia la data del body que se obtiene en la ruta 'pedidopostback'
+ * @param {Number} psid id del usuario
+ * @param {Object} data_decoded data del formulario con ubicacion
+ */
+async function templateAfterPedido(psid,data_decoded){ 
+    let data_encoded = Base.encodeData(data_decoded)
+    savePrePedido(psid,data_encoded).then(_ =>{
+        let data={
+            'text':'Si tu pedido está conforme, presiona CONTINUAR ✅, sino presiona MODIFICAR PEDIDO',
+            'buttons':[
+                {'type':'postback','title':'CONTINUAR ✅','payload':`RP_PEDIR_TELEFONO`},
+                {'type':'postback','title':'MODIFICAR PEDIDO','payload':`MODIFICAR_PEDIDO`}
+            ]
+        }
+        callSendAPI(psid,BaseJson.getTemplateButton(data))
+    })
 }
 async function telefonoQR(psid){
     data = {
-        "text": "Digita tu número (o seleccionalo si es el que te mostramos 👇):",
-        "quick_replies":[
-            { "content_type":"user_phone_number"}
-        ]
+        "text": "Escribe tu número (o seleccionalo si es el que te mostramos 👇):",
+        "quick_replies":[{ "content_type":"user_phone_number"}]
     }
     callSendAPI(psid,data)
 }
@@ -322,6 +376,10 @@ async function pedirTelefono(psid,body_encoded){ //muestra los telefonos registr
     let usuario_selected = await getUsuarioByPsid(psid)
     let add_phone = getAddPhoneCard(body_encoded)
     let elements = []
+
+    data_decoded.flujo = Base.FLUJO.PEDIR_TELEFONO
+    savePrePedido(psid,Base.encodeData(data_decoded))
+
     if (usuario_selected.existe) { //si esta registrado en firebase por su psid, se procede a comprobar si tiene telefonos registrados
         let snapshot = await db.ref(`usuarios/${usuario_selected.key}/telefonos`).once('value')
         telefonos = Base.fillInFirebase(snapshot)
@@ -335,14 +393,14 @@ async function pedirTelefono(psid,body_encoded){ //muestra los telefonos registr
                     "image_url":``,
                     "subtitle":"",
                     "buttons":[
-                        {'type':'postback','title':'AGREGAR','payload':`RP_TELEFONO_SELECCIONADO--${data_encoded}`},
+                        {'type':'postback','title':'SELECCIONAR','payload':`RP_TELEFONO_SELECCIONADO--${data_encoded}`},
                     ]
                 })
             })
-            //elements.push(add_phone)
+            elements.push(add_phone)
             text={'text':'Escoge o agrega un número de celular 📲:'}
-            callSendAPI(psid,text).then( response =>{
-                callSendAPI(psid,BaseJson.getGenericBlock(elements)).then( _ =>{})
+            callSendAPI(psid,text).then( _ =>{
+                callSendAPI(psid,BaseJson.getGenericBlock(elements))
             })
         } else{ //no tiene telefonos registrados
             elements.push(add_phone)
@@ -389,7 +447,7 @@ async function saveLocation(body){
         } else{ //si el usuario no está registrado, se procede a registrar
             saveUser(psid,'ubicaciones',ubicacion)
         }
-        resolve({'text':'Genial! Haz agregado correctamente tu ubicación'})
+        resolve({'text':'Genial! Haz agregado correctamente tu ubicación 😎'})
     })
 }
 async function saveUser(psid,atributo,data){
@@ -474,6 +532,20 @@ function getBloqueInicial(){
     //elements=JSON.stringify(elements)
     return BaseJson.getGenericBlock(elements)
 }
+/**
+ * gestiona el pre_pedido, si el usuario selecciona un proceso anterior o no sigue el flujo de la conversacion, esta función permite seguir con el proceso
+ * @param {*} psid id del usuario
+ * @param {*} pre_pedido data codificada que ha sido traida desde firebase
+ */
+async function managePrePedido(psid,pre_pedido){
+    let data_decoded = Base.decodeData(pre_pedido)
+
+}
+/**
+ * Actualiza la información en firebase del pre_pedido
+ * @param {*} psid id del usuario
+ * @param {*} data_encoded data codificada a guardar
+ */
 async function savePrePedido(psid,data_encoded){
     let usuario = await getUsuarioByPsid(psid)
     if (usuario.existe) {
@@ -489,10 +561,10 @@ async function savePrePedido(psid,data_encoded){
 }
 /**
  * setea los atributos 'created_at' y 'pre_pedido' a vacio
- * @param {*} usuarioRef referencia de firebase del usuario seleccionado
+ * @param {String} key key del objeto usuario seleccionado
  */
-async function deletePrePedido(usuarioRef){
-    usuarioRef.update({
+async function deletePrePedido(key){
+    db.ref(`usuarios/${key}`).update({
         'created_at':'',
         'pre_pedido':''
     })
@@ -503,23 +575,27 @@ async function deletePrePedido(usuarioRef){
  */
 async function getPrePedidoByPsid(psid){
     let usuario = await getUsuarioByPsid(psid)
-    let usuarioRef = db.ref(`usuarios/${usuario.key}`)
 
-    if (usuario.existe) {
+    if (usuario.existe && usuario.pre_pedido!='') { //si el usuario existe y tiene pre_pedido
         let diff = Math.abs(new Date(Base.getDate())-new Date(usuario.created_at)) //actual - create_at = diff in ms
         let minutes = Math.floor((diff/1000)/60)
-
-        console.log(`minutos: ${minutes}`)
+        console.log(`dif: ${diff} minutos: ${minutes}`)
 
         if (minutes>=30) { //si el pre_pedido pasa los 30 minutos, se elimina
-            await deletePrePedido(usuarioRef)
+            await deletePrePedido(usuario.key)
             return '' //no hay data del pre_pedido
         } else{
             return usuario.pre_pedido
         }
+    } else{  //devuelve vacio
+        return usuario.pre_pedido
     }
 }
-async function getDireccionesByUsuario(psid){
+/**
+ * 
+ * @param {Number} psid id del usuario
+ */
+async function templateDirecciones(psid){
     let usuario_selected = await getUsuarioByPsid(psid)
     let add_location = getAddLocationCard() //card para agregar dirección del usuario
     let elements=[] // elementos del bloque
@@ -527,9 +603,11 @@ async function getDireccionesByUsuario(psid){
         let snapshot = await db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).once('value')
         let ubicaciones = Base.fillInFirebase(snapshot)
         ubicaciones.map(ubicacion =>{
+            ubicacion.flujo = Base.FLUJO.PEDIR_DI1RECCION
+            ubicacion.created_at = Base.getDate()
             let ubicacion_encoded = Base.encodeData(ubicacion) //aca inicia la codificacion de datos del pedido
             elements.push({
-                "title":ubicacion.referencia,
+                "title":ubicacion.referencia, //change
                 "subtitle":ubicacion.referencia,
                 "image_url":`https://maps.googleapis.com/maps/api/staticmap?center=${ubicacion.latitud},${ubicacion.longitud}&zoom=18&size=570x300&maptype=roadmap&markers=color:red%7Clabel:AQUI%7C${ubicacion.latitud},${ubicacion.longitud}&key=${Base.GMAP_API_KEY}`,
                 "buttons":[
@@ -538,7 +616,6 @@ async function getDireccionesByUsuario(psid){
             })
         })
         elements.push(add_location)
-        //console.log(`elements del bloque: ${JSON.stringify(elements)}`)
         text={'text':'¿A donde enviamos hoy tu pedido? 🛵'}
         callSendAPI(psid,text).then( response =>{
             callSendAPI(psid,BaseJson.getGenericBlock(elements)).then( _ =>{})
@@ -551,9 +628,19 @@ async function getDireccionesByUsuario(psid){
         })
     }
 }
+async function templateTelefonoSeleccionado(psid,data_encoded){
+    let data_decoded = Base.decodeData(data_encoded)
+    data_decoded.flujo = Base.FLUJO.TELEFONO_SELECCIONADO
+    savePrePedido(psid,Base.encodeData(data_decoded))
+
+    callSendAPI(psid,{text:'Haz seleccionado un telefono, espera que revise el codigo y seguimos con el flujo'})
+}
 async function direccionSeleccionada(psid,ubicacion_encoded){ //se recoge el objeto ubicacion y se manda a la web
     let ubicacion_decoded = Base.decodeData(ubicacion_encoded)
+    ubicacion_decoded.flujo = Base.FLUJO.DIRECCION_SELECCIONADA
+    ubicacion_decoded.created_at = Base.getDate()
     let str_ubicacion = JSON.stringify(ubicacion_decoded)
+
     let data={
         'text':'Genial, para seguir con el pedido presiona CONTINUAR ✅',
         'buttons':[
@@ -565,7 +652,11 @@ async function direccionSeleccionada(psid,ubicacion_encoded){ //se recoge el obj
             {'type':'postback','title':'CAMBIAR DIRECCION','payload':'RP_DIRECCIONES'}
         ]
     }
-    callSendAPI(psid,BaseJson.getTemplateButton(data))
+
+    let data_encoded = Base.encodeData(ubicacion_decoded)
+    savePrePedido(psid,data_encoded).then(_ =>{
+        callSendAPI(psid,BaseJson.getTemplateButton(data))
+    })
 }
 /********************************************
  * FUNCIONES BASES PARA LA CREACION DE FORMATOS JSON

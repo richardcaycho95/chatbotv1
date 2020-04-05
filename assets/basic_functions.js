@@ -60,5 +60,12 @@ module.exports={
   //variables constantes de ambiente
   SUSBCRIBE_MODE:'subscribe',
   PAGE_ACCESS_TOKEN:process.env.PAGE_ACCESS_TOKEN,
-  VERIFICATION_TOKEN:process.env.VERIFICATION_TOKEN
+  VERIFICATION_TOKEN:process.env.VERIFICATION_TOKEN,
+  FLUJO:{
+    PEDIR_DIRECCION:'templateDirecciones',
+    DIRECCION_SELECCIONADA:'direccion_seleccionada',
+    POST_PEDIDO:'post_pedido',
+    PEDIR_TELEFONO:'pedir_telefono',
+    TELEFONO_SELECCIONADO:'telefono_seleccionado'
+  }
 }
