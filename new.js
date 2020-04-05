@@ -79,6 +79,7 @@ app.get('/webhook',(req,res)=>{
 app.get('/pedidopostback',(req,res)=>{
     let responses=[]
     let body = req.query
+    let ubicacion_data = JSON.parse(body.ubicacion)
     if(body){
         let data = {
             psid: body.psid,
@@ -87,10 +88,10 @@ app.get('/pedidopostback',(req,res)=>{
             comentario: body.comentario,
             total: body.total,
             ubicacion: {
-                referencia:body.referencia,
-                direccion: body.direccion,
-                latitud: body.latitud,
-                longitud: body.longitud
+                referencia:ubicacion_data.referencia,
+                direccion: ubicacion_data.direccion,
+                latitud: ubicacion_data.latitud,
+                longitud: ubicacion_data.longitud
             },
             flujo:body.flujo,
             created_at:Base.getDate()
