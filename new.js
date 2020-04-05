@@ -108,9 +108,9 @@ app.get('/pedidopostback',(req,res)=>{
 
         res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
 
-        typing(psid,5000).then( __ =>{
-            callSendAPI(psid,{"text": text}).then(_ =>{
-                templateAfterPedido(psid,data)
+        typing(data.psid,5000).then( __ =>{
+            callSendAPI(data.psid,{"text": text}).then(_ =>{
+                templateAfterPedido(data.psid,data)
             })
         })
     }
