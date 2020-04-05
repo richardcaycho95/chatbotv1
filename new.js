@@ -80,7 +80,6 @@ app.get('/pedidopostback',(req,res)=>{
     let responses=[]
     let body = req.query
     if(body){
-        let data_decoded = Base.decodeData(body.ubicacion)
         let data = {
             psid: body.psid,
             pedido: JSON.parse(body.pedido),
@@ -88,9 +87,10 @@ app.get('/pedidopostback',(req,res)=>{
             comentario: body.comentario,
             total: body.total,
             ubicacion: {
-                referencia:data_decoded.referencia,
-                direccion: data_decoded.direccion,
-                latitud: data_decoded.latitud
+                referencia:body.referencia,
+                direccion: body.direccion,
+                latitud: body.latitud,
+                longitud: body.longitud
             },
             flujo:data_decoded.flujo,
             created_at:Base.getDate()
