@@ -92,7 +92,7 @@ app.get('/pedidopostback',(req,res)=>{
                 latitud: body.latitud,
                 longitud: body.longitud
             },
-            flujo:data_decoded.flujo,
+            flujo:body.flujo,
             created_at:Base.getDate()
         }
         
