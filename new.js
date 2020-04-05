@@ -172,7 +172,7 @@ async function handleMessage(sender_psid,received_message){
                 'text':'Tienes un pedido en proceso... ¿Deseas cancelarlo?',
                 'buttons':[{type:'postback',title:'SI',payload:'CANCELAR_PREPEDIDO'},{type:'postback',title:'NO',payload:'SEGUIR_PREPEDIDO'}]
             }
-            callSendAPI(sender_psid,getTemplateButton(data))
+            callSendAPI(sender_psid,BaseJson.getTemplateButton(data))
         }
     }
 }
