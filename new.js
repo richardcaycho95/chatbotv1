@@ -245,7 +245,7 @@ async function handlePostback(sender_psid,received_postback){
             break;
         case 'RP_TELEFONO_SELECCIONADO': //cuando se ha seleccionado un telefono, se procede a preguntar el horario de envio
             if (pre_pedido!='') {
-                templateTelefonoSeleccionado(sender_psid,response[1])
+                templateTelefonoSeleccionado(sender_psid,pre_pedido)
             } else{
                 managePrePedido(sender_psid,pre_pedido)
             }
@@ -254,15 +254,15 @@ async function handlePostback(sender_psid,received_postback){
                 deletePrePedido(sender_psid,true).then(_ =>{
                     callSendAPI(sender_psid,{text:'Nuestro chatbot está listo para recibir tus ordenes, solo escibenos cuando desees 😊'})
                 })
-            } else{
+            } else{ //si el pre_pedido ya ha sido eliminado y el usuario siue presionando el mismo botón
                 callSendAPI(sender_psid,{text:'Ya se eliminó tu pedido... No olvides que nuestro chatbot está listo para recibir tus ordenes 😊'})
             }
             break;
         case 'SEGUIR_PREPEDIDO':
             callSendAPI(sender_psid,{text:'Continuemos 😎 ...'}).then( _ =>{
-
+                managePrePedido(sender_psid,pre_pedido)
             })
-                break;
+            break;
         case 'GET_STARTED':
             callSendAPI(sender_psid,{'text':'Bienvenido al delivery virtual :)'})
             break;
@@ -557,18 +557,19 @@ async function managePrePedido(psid,pre_pedido){
     let data_decoded = Base.decodeData(pre_pedido)
     let flujo = Base.FLUJO
 
-    switch (data_decode.flujo) {
+    switch (data_decoded.flujo) {
         case flujo.PEDIR_DIRECCION:
-            
+            templateDirecciones(psid)
             break;
         case flujo.DIRECCION_SELECCIONADA:
-            
+            direccionSeleccionada(sender_psid,pre_pedido)
             break;
         case flujo.POST_PEDIDO:
-            
+            //despues que se llena el pedido desde le formulario
+            templateAfterPedido(psid,data_decoded)
             break;
         case flujo.PEDIR_TELEFONO:
-            
+            pedirTelefono(psid,pre_pedido)
             break;
         case flujo.TELEFONO_SELECCIONADO:
             
