@@ -251,7 +251,7 @@ async function handlePostback(sender_psid,received_postback){
             }
         case 'CANCELAR_PREPEDIDO':
             if(pre_pedido!=''){ // si hay pre_pedido
-                deletePrePedido(sender_psid).then(_ =>{
+                deletePrePedido(sender_psid,true).then(_ =>{
                     callSendAPI(sender_psid,{text:'Nuestro chatbot está listo para recibir tus ordenes, solo escibenos cuando desees 😊'})
                 })
             } else{
@@ -622,7 +622,7 @@ async function getPrePedidoByPsid(psid){
         console.log(`dif: ${diff} minutos: ${minutes}`)
 
         if (minutes>=30) { //si el pre_pedido pasa los 30 minutos, se elimina
-            await deletePrePedido(usuario.key,true)
+            await deletePrePedido(usuario.key)
             return '' //no hay data del pre_pedido
         } else{
             return usuario.pre_pedido
