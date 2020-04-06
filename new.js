@@ -602,7 +602,10 @@ async function savePrePedido(psid,data_encoded){
  */
 async function deletePrePedido(key,is_psid=false){
     let my_key = key
-    if(is_psid) my_key = await getUsuarioByPsid(key)
+    if(is_psid) {
+        let temp = await getUsuarioByPsid(key)
+        my_key = temp.key
+    }
 
     db.ref(`usuarios/${my_key}`).update({
         'created_at':'',
