@@ -228,7 +228,7 @@ async function handlePostback(sender_psid,received_postback){
             break;
         case 'RP_DIR_SELECCIONADA': //cuando el usuario selecciona una dirección mostrada, aca recien se empezará a crear el pre_pedido
             if (pre_pedido!='') { //si hay un pre_pedido, mandar al flujo
-                managePrePedido(psid,pre_pedido)
+                managePrePedido(sender_psid,pre_pedido)
             } else{ //si no hay pre_pedido
                 direccionSeleccionada(sender_psid,response[1])//response[1]: objeto ubicacion codificado, este ha sido seleccionado por el usuario
             }
