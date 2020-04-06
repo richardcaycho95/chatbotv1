@@ -79,41 +79,46 @@ app.get('/webhook',(req,res)=>{
 app.get('/pedidopostback',(req,res)=>{
     let responses=[]
     let body = req.query
-    let ubicacion_data = JSON.parse(body.ubicacion)
-    if(body){
-        let data = {
-            psid: body.psid,
-            pedido: JSON.parse(body.pedido),
-            complementos: JSON.parse(body.complementos),
-            comentario: body.comentario,
-            total: body.total,
-            ubicacion: {
-                referencia:ubicacion_data.referencia,
-                direccion: ubicacion_data.direccion,
-                latitud: ubicacion_data.latitud,
-                longitud: ubicacion_data.longitud
-            },
-            flujo:body.flujo,
-            created_at:Base.getDate()
-        }
-        
-        let text = 'Tu pedido es el siguiente:\n'
-        text+=Base.getTextPedidoFromArray(data.pedido.entradas,'ENTRADAS')
-        text+=Base.getTextPedidoFromArray(data.pedido.segundos,'SEGUNDOS')
-        text+=Base.getTextPedidoFromArray(data.complementos.gaseosas,'GASEOSAS')
-        text+=Base.getTextPedidoFromArray(data.complementos.postres,'POSTRES')
+    let pre_pedido = await getPrePedidoByPsid(body.psid)
+    if(pre_pedido!=''){// si aun está disponible el pre_pedido
+        if(body){
+            let ubicacion_data = JSON.parse(body.ubicacion)
+            let data = {
+                psid: body.psid,
+                pedido: JSON.parse(body.pedido),
+                complementos: JSON.parse(body.complementos),
+                comentario: body.comentario,
+                total: body.total,
+                ubicacion: {
+                    referencia:ubicacion_data.referencia,
+                    direccion: ubicacion_data.direccion,
+                    latitud: ubicacion_data.latitud,
+                    longitud: ubicacion_data.longitud
+                },
+                flujo:body.flujo,
+                created_at:Base.getDate()
+            }
 
-        text+=(data.comentario=='')?'':`\nComentario: ${data.comentario}`
-        text+=`\nEnviar a: ${data.ubicacion.referencia}`
-        text+=`\nTotal a pagar: ${data.total}`
+            res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
 
-        res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
+            typing(data.psid,5000).then( __ =>{
+                let text = 'Tu pedido es el siguiente:\n'
+                text+=Base.getTextPedidoFromArray(data.pedido.entradas,'ENTRADAS')
+                text+=Base.getTextPedidoFromArray(data.pedido.segundos,'SEGUNDOS')
+                text+=Base.getTextPedidoFromArray(data.complementos.gaseosas,'GASEOSAS')
+                text+=Base.getTextPedidoFromArray(data.complementos.postres,'POSTRES')
 
-        typing(data.psid,5000).then( __ =>{
-            callSendAPI(data.psid,{"text": text}).then(_ =>{
-                templateAfterPedido(data.psid,data)
+                text+=(data.comentario=='')?'':`\nComentario: ${data.comentario}`
+                text+=`\nEnviar a: ${data.ubicacion.referencia}`
+                text+=`\nTotal a pagar: ${data.total}`
+
+                callSendAPI(data.psid,{"text": text}).then(_ =>{
+                    templateAfterPedido(data.psid,data)
+                })
             })
-        })
+        }
+    } else{
+        callSendAPI(body.psid,{text:'Lo sentimos, ha pasado mucho tiempo desde que empezaste con tu pedido, por favor, inicia nuevamente'})
     }
 });
 app.get('/add_location_postback',(req,res)=>{
@@ -228,7 +233,7 @@ async function handlePostback(sender_psid,received_postback){
                 direccionSeleccionada(sender_psid,response[1])//response[1]: objeto ubicacion codificado, este ha sido seleccionado por el usuario
             }
             break;
-        case 'RP_PEDIR_TELEFONO'://cuando el usuario confirma que su pedido es conforme
+        case 'RP_PEDIR_TELEFONO'://cuando el usuario confirma que su pedido es conforme y presiona "CONTINUAR"
             if (pre_pedido!='') {
                 pedirTelefono(sender_psid,pre_pedido) //la data viene codificada desde /pedidopostback (data) y este pasa por templateAfterPedido para al final llegar a esta
             } else{
@@ -238,19 +243,19 @@ async function handlePostback(sender_psid,received_postback){
         case 'RP_AGREGAR_TELEFONO':
             telefonoQR(sender_psid,temp_data)
             break;
-        case 'RP_TELEFONO_SELECCIONADO': //cuando se ha seleccionado un telefono
+        case 'RP_TELEFONO_SELECCIONADO': //cuando se ha seleccionado un telefono, se procede a preguntar el horario de envio
             if (pre_pedido!='') {
                 templateTelefonoSeleccionado(sender_psid,response[1])
             } else{
                 managePrePedido(sender_psid,pre_pedido)
             }
         case 'CANCELAR_PREPEDIDO':
-            deletePrePedido(psid).then(_ =>{
-                callSendAPI(psid,{text:'Nuestro chatbot está listo a recibir tus ordenes, solo escibenos cuando desees 😊'})
+            deletePrePedido(sender_psid).then(_ =>{
+                callSendAPI(sender_psid,{text:'Nuestro chatbot está listo a recibir tus ordenes, solo escibenos cuando desees 😊'})
             })
             break;
         case 'SEGUIR_PREPEDIDO':
-            callSendAPI(psid,{text:'Continuemos 😎 ...'}).then( _ =>{
+            callSendAPI(sender_psid,{text:'Continuemos 😎 ...'}).then( _ =>{
 
             })
                 break;
@@ -292,10 +297,11 @@ async function callSendAPI(sender_psid,response,messaging_type='RESPONSE'){
     })
 }
 /*****END:FUNCIONES BASICAS PARA COMUNICAR CON EL BOT:END********/
+
 /**
  * activa la acción "typing" y lo desactiva de acuerdo a los milisegundos asignado
  * @param {Number} psid id del usuario a enviar
- * @param {Number} time milisegundos activo la acción
+ * @param {Number} time milisegundos que estará activa la acción
  */
 async function typing(psid,time){
     let requestBody = {
@@ -348,18 +354,18 @@ function getSaludo(sender_psid){
     })
 }
 /**
- * envia la data del body que se obtiene en la ruta 'pedidopostback'
+ * envia la data del body que se obtiene en la ruta 'pedidopostback', se guarda el pre_pedido
  * @param {Number} psid id del usuario
- * @param {Object} data_decoded data del formulario con ubicacion
+ * @param {Object} data_decoded data del formulario que tiene el pedido, la ubicación seleccionada, el flujo
  */
 async function templateAfterPedido(psid,data_decoded){ 
     let data_encoded = Base.encodeData(data_decoded)
     savePrePedido(psid,data_encoded).then(_ =>{
         let data={
-            'text':'Si tu pedido está conforme, presiona CONTINUAR ✅, sino presiona MODIFICAR PEDIDO',
+            'text':'Si tu pedido está conforme, presiona CONTINUAR ✅, sino presiona MODIFICAR PEDIDO ✏',
             'buttons':[
                 {'type':'postback','title':'CONTINUAR ✅','payload':`RP_PEDIR_TELEFONO`},
-                {'type':'postback','title':'MODIFICAR PEDIDO','payload':`MODIFICAR_PEDIDO`}
+                {'type':'postback','title':'MODIFICAR PEDIDO ✏','payload':`MODIFICAR_PEDIDO`}
             ]
         }
         callSendAPI(psid,BaseJson.getTemplateButton(data))
@@ -372,10 +378,15 @@ async function telefonoQR(psid){
     }
     callSendAPI(psid,data)
 }
-async function pedirTelefono(psid,body_encoded){ //muestra los telefonos registrados(si hubiera) y muestra card de agregar telefono
-    let data_decoded = Base.decodeData(body_encoded)
+/**
+ * muestra los telefonos registrados(si hubiera) y muestra card de agregar telefono
+ * @param {Number} psid id del usuario
+ * @param {String} body_encoded data codificada que se viene transformando por el flujo
+ */
+async function pedirTelefono(psid,data_encoded){
+    let data_decoded = Base.decodeData(data_encoded)
     let usuario_selected = await getUsuarioByPsid(psid)
-    let add_phone = getAddPhoneCard(body_encoded)
+    let add_phone = getAddPhoneCard(data_encoded)
     let elements = []
 
     data_decoded.flujo = Base.FLUJO.PEDIR_TELEFONO
@@ -540,7 +551,27 @@ function getBloqueInicial(){
  */
 async function managePrePedido(psid,pre_pedido){
     let data_decoded = Base.decodeData(pre_pedido)
+    let flujo = Base.FLUJO
 
+    switch (data_decode.flujo) {
+        case flujo.PEDIR_DIRECCION:
+            
+            break;
+        case flujo.DIRECCION_SELECCIONADA:
+            
+            break;
+        case flujo.POST_PEDIDO:
+            
+            break;
+        case flujo.PEDIR_TELEFONO:
+            
+            break;
+        case flujo.TELEFONO_SELECCIONADO:
+            
+            break;
+        default:
+            break;
+    }
 }
 /**
  * Actualiza la información en firebase del pre_pedido
@@ -643,12 +674,12 @@ async function direccionSeleccionada(psid,ubicacion_encoded){ //se recoge el obj
     let str_ubicacion = JSON.stringify(ubicacion_decoded)
 
     let data={
-        'text':'Genial, para seguir con el pedido presiona CONTINUAR ✅',
+        'text':`Para elegir tu pedido, selecciona CONTINUAR ✅`,
         'buttons':[
             {
-                'type':'web_url','url':`${Base.WEB_URL}?ubicacion=${str_ubicacion}`,
+                'type':'web_url','url':`${Base.WEB_URL}?ubicacion=${str_ubicacion}&psid=${psid}`,
                 'title':'CONTINUAR ✅','webview_height_ratio':'tall',
-                'messenger_extensions':'true','fallback_url':`${Base.WEB_URL}?ubicacion=${str_ubicacion}`
+                'messenger_extensions':'true','fallback_url':`${Base.WEB_URL}?ubicacion=${str_ubicacion}&psid=${psid}`
             },
             {'type':'postback','title':'CAMBIAR DIRECCION','payload':'RP_DIRECCIONES'}
         ]
@@ -656,7 +687,9 @@ async function direccionSeleccionada(psid,ubicacion_encoded){ //se recoge el obj
 
     let data_encoded = Base.encodeData(ubicacion_decoded)
     savePrePedido(psid,data_encoded).then(_ =>{
-        callSendAPI(psid,BaseJson.getTemplateButton(data))
+        callSendAPI(psid,{text: `Genial, haz elegido ${ubicacion_decoded.referencia} como dirección de envio`}).then(__ =>{
+            callSendAPI(psid,BaseJson.getTemplateButton(data))
+        })
     })
 }
 /********************************************
