@@ -243,12 +243,14 @@ async function handlePostback(sender_psid,received_postback){
         case 'RP_AGREGAR_TELEFONO':
             telefonoQR(sender_psid,temp_data)
             break;
-        case 'RP_TELEFONO_SELECCIONADO': //cuando se ha seleccionado un telefono, se procede a preguntar el horario de envio
+        case 'RP_TELEFONO_SELECCIONADO': //cuando se ha seleccionado un telefono, se procede a preguntar el horario de envio 
+            //el usuario selecciona un número de las cards que se muestra, cada card tiene codificada la data anterior y el numero respectivo, cuando se selecciona se trae en la segunda parte del payload, y luego se guarda en firebase
             if (pre_pedido!='') {
-                templateTelefonoSeleccionado(sender_psid,pre_pedido)
+                templateTelefonoSeleccionado(sender_psid,response[1])
             } else{
                 managePrePedido(sender_psid,pre_pedido)
             }
+            break;
         case 'CANCELAR_PREPEDIDO':
             if(pre_pedido!=''){ // si hay pre_pedido
                 deletePrePedido(sender_psid,true).then(_ =>{
