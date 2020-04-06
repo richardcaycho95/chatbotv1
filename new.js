@@ -556,27 +556,30 @@ function getBloqueInicial(){
 async function managePrePedido(psid,pre_pedido){
     let data_decoded = Base.decodeData(pre_pedido)
     let flujo = Base.FLUJO
-
-    switch (data_decoded.flujo) {
-        case flujo.PEDIR_DIRECCION:
-            templateDirecciones(psid)
-            break;
-        case flujo.DIRECCION_SELECCIONADA:
-            direccionSeleccionada(sender_psid,pre_pedido)
-            break;
-        case flujo.POST_PEDIDO:
-            //despues que se llena el pedido desde le formulario
-            templateAfterPedido(psid,data_decoded)
-            break;
-        case flujo.PEDIR_TELEFONO:
-            pedirTelefono(psid,pre_pedido)
-            break;
-        case flujo.TELEFONO_SELECCIONADO:
-            
-            break;
-        default:
-            break;
-    }
+    typing(psid,2000).then(_ => {
+        callSendAPI(psid,{text:'Debes seguir el flujo de la conversación para tomar tu pedido correctamente... Te guiaremos donde te quedaste:'}).then(__ =>{
+            switch (data_decoded.flujo) {
+                case flujo.PEDIR_DIRECCION:
+                    templateDirecciones(psid)
+                    break;
+                case flujo.DIRECCION_SELECCIONADA:
+                    direccionSeleccionada(sender_psid,pre_pedido)
+                    break;
+                case flujo.POST_PEDIDO:
+                    //despues que se llena el pedido desde le formulario
+                    templateAfterPedido(psid,data_decoded)
+                    break;
+                case flujo.PEDIR_TELEFONO:
+                    pedirTelefono(psid,pre_pedido)
+                    break;
+                case flujo.TELEFONO_SELECCIONADO:
+                    
+                    break;
+                default:
+                    break;
+            }
+        })
+    })
 }
 /**
  * Actualiza la información en firebase del pre_pedido
