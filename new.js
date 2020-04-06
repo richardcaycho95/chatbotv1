@@ -603,7 +603,7 @@ async function savePrePedido(psid,data_encoded){
 async function deletePrePedido(key,is_psid=false){
     let my_key = key
     if(is_psid) my_key = await getUsuarioByPsid(key)
-    
+
     db.ref(`usuarios/${my_key}`).update({
         'created_at':'',
         'pre_pedido':''
@@ -622,7 +622,7 @@ async function getPrePedidoByPsid(psid){
         console.log(`dif: ${diff} minutos: ${minutes}`)
 
         if (minutes>=30) { //si el pre_pedido pasa los 30 minutos, se elimina
-            await deletePrePedido(usuario.key)
+            await deletePrePedido(usuario.key,true)
             return '' //no hay data del pre_pedido
         } else{
             return usuario.pre_pedido
