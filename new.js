@@ -79,7 +79,7 @@ app.get('/webhook',(req,res)=>{
 app.get('/pedidopostback',(req,res)=>{
     let responses=[]
     let body = req.query
-    let pre_pedido = await getPrePedidoByPsid(body.psid)
+    let pre_pedido = getPrePedidoByPsid(body.psid)
     if(pre_pedido!=''){// si aun está disponible el pre_pedido
         if(body){
             let ubicacion_data = JSON.parse(body.ubicacion)
