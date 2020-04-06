@@ -250,9 +250,13 @@ async function handlePostback(sender_psid,received_postback){
                 managePrePedido(sender_psid,pre_pedido)
             }
         case 'CANCELAR_PREPEDIDO':
-            deletePrePedido(sender_psid).then(_ =>{
-                callSendAPI(sender_psid,{text:'Nuestro chatbot está listo a recibir tus ordenes, solo escibenos cuando desees 😊'})
-            })
+            if(pre_pedido!=''){ // si hay pre_pedido
+                deletePrePedido(sender_psid).then(_ =>{
+                    callSendAPI(sender_psid,{text:'Nuestro chatbot está listo para recibir tus ordenes, solo escibenos cuando desees 😊'})
+                })
+            } else{
+                callSendAPI(sender_psid,{text:'Ya se eliminó tu pedido... No olvides que nuestro chatbot está listo para recibir tus ordenes 😊'})
+            }
             break;
         case 'SEGUIR_PREPEDIDO':
             callSendAPI(sender_psid,{text:'Continuemos 😎 ...'}).then( _ =>{
