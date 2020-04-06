@@ -598,9 +598,13 @@ async function savePrePedido(psid,data_encoded){
 /**
  * setea los atributos 'created_at' y 'pre_pedido' a vacio
  * @param {String} key key del objeto usuario seleccionado
+ * @param {Boolean} is_psid si es verdadero, la key es el psid, si el primer parametro es la key del usuario, omitir
  */
-async function deletePrePedido(key){
-    db.ref(`usuarios/${key}`).update({
+async function deletePrePedido(key,is_psid=false){
+    let my_key = key
+    if(is_psid) my_key = await getUsuarioByPsid(key)
+    
+    db.ref(`usuarios/${my_key}`).update({
         'created_at':'',
         'pre_pedido':''
     })
