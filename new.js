@@ -150,7 +150,7 @@ async function handleQuickReply(sender_psid,message){
         let data_encoded = await getPrePedidoByPsid(sender_psid)
         if (data_encoded!='') { //si la data aun no se ha eliminado
             savePhoneNumber(sender_psid,payload,data_encoded).then(response => {
-                pedirTelefono(psid,response)
+                pedirTelefono(sender_psid,response)
             })
         }
     }
