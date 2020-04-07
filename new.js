@@ -166,7 +166,7 @@ async function handleMessage(sender_psid,received_message){
     } else if (received_message.text) { //si no hay QR
         let data = await getPrePedidoByPsid(sender_psid)
         console.log(data)
-        if (data=='') { //si no hay prepedido
+        if (data=='' || data===undefined) { //si no hay prepedido
             getSaludo(sender_psid).then(response =>{
                 callSendAPI(sender_psid,response).then(r =>{ //creando el saludo
                     callSendAPI(sender_psid,getBloqueInicial()) //creando bloque inicial
