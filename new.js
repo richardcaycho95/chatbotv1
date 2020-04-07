@@ -124,7 +124,7 @@ app.get('/pedidopostback',(req,res)=>{
 app.get('/add_location_postback',(req,res)=>{
     let responses=[]
     let body = req.query
-    if(body){
+    if(body.psid!=''){
         let psid=body.psid
         saveLocation(body).then( response =>{ //devuelve el formato de respuesta para enviar al usuario
             res.status(200).send('<h1>Por favor cierra esta ventana para seguir con el pedido</h1>')
@@ -134,7 +134,7 @@ app.get('/add_location_postback',(req,res)=>{
             })
         })
     } else{
-        console.log('something was wrong')
+        console.log('psid no definido en add_location_postback')
     }
 });
 /**************************************************************/
