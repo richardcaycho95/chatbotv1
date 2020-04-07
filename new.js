@@ -482,17 +482,21 @@ async function saveUser(psid,atributo,data){
         created_at:'',
         pre_pedido: ''
     }
-    if (atributo=='ubicaciones') {
-        new_usuario.ubicaciones= { "ubicacion_1": data }
-    } else if (atributo=='telefonos') {
-        new_usuario.telefonos= { "telefono_1": data }
-    }
-    //verificar si el usuario ya está registrado, si es asi, se actualiza
-    let usuario = await getUsuarioByPsid(psid)
-    if (usuario.existe) {
-        db.ref(`usuarios/${usuario.key}/${atributo}`).push(data)
+    if(psid!=''){
+        if (atributo=='ubicaciones') {
+            new_usuario.ubicaciones= { "ubicacion_1": data }
+        } else if (atributo=='telefonos') {
+            new_usuario.telefonos= { "telefono_1": data }
+        }
+        //verificar si el usuario ya está registrado, si es asi, se actualiza
+        let usuario = await getUsuarioByPsid(psid)
+        if (usuario.existe) {
+            db.ref(`usuarios/${usuario.key}/${atributo}`).push(data)
+        } else{
+            db.ref('usuarios').push(new_usuario)
+        }
     } else{
-        db.ref('usuarios').push(new_usuario)
+        console.log('se esta queriendo guardar a un usuario con psid vacio')
     }
 }
 /**
