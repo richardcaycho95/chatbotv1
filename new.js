@@ -161,6 +161,10 @@ async function handleQuickReply(sender_psid,message){
  * @param {*} received_message body.entry[n].messaging[n].message
  */
 async function handleMessage(sender_psid,received_message){
+    let usuario = await getUsuarioByPsid(sender_psid)
+    if(!usuario.existe){
+        await saveUser(sender_psid,'','')
+    }
     if(received_message.quick_reply){ //si el mensaje posee un QR
         handleQuickReply(sender_psid,received_message)
     } else if (received_message.text) { //si no hay QR
@@ -222,7 +226,7 @@ async function handlePostback(sender_psid,received_postback){
             break;
         case 'RP_DIRECCIONES': //cuando el usuario selecciona el botón "REALIZAR PEDIDO"
             if (pre_pedido!='') { //si hay un pre_pedido
-                managePrePedido(psid,pre_pedido)
+                managePrePedido(sender_psid,pre_pedido)
             } else{ //si no hay pre_pedido
                 templateDirecciones(sender_psid)
             }
