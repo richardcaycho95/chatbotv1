@@ -650,7 +650,7 @@ async function getPrePedidoByPsid(psid){
  */
 async function templateDirecciones(psid){
     let usuario_selected = await getUsuarioByPsid(psid)
-    let add_location = getAddLocationCard() //card para agregar dirección del usuario
+    let add_location = getAddLocationCard(psid) //card para agregar dirección del usuario
     let elements=[] // elementos del bloque
     if(usuario_selected.existe){ //si el usuario esta registrado en firebase(por su psid)
         let snapshot = await db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).once('value')
@@ -687,7 +687,7 @@ async function templateTelefonoSeleccionado(psid,data_encoded){
     savePrePedido(psid,Base.encodeData(data_decoded))
 
     let data_qr = {
-        text:'Empezamos a repartir desde las 12:00pm hasta las 3:00pm\n¿A que hora deseas que te enviemos tu pedido?\n(Elige entre las opciones 👇):',
+        text:`Empezamos a repartir desde las ${Base.REPARTO.HORA_INICIO} hasta las ${Base.REPARTO.HORA_FIN}\n¿A que hora deseas que te enviemos tu pedido?\n(Elige entre las opciones 👇):`,
         'quick_replies':Base.getHorariosEnvio()
     }
     callSendAPI(psid,data_qr)
@@ -720,7 +720,7 @@ async function direccionSeleccionada(psid,ubicacion_encoded){ //se recoge el obj
 /********************************************
  * FUNCIONES BASES PARA LA CREACION DE FORMATOS JSON
  * ****************************************** */ 
-function getAddLocationCard(){
+function getAddLocationCard(psid){
     return {
         "title":'Añade una ubicación',
         "image_url":`${Base.WEBHOOK_URL}/add_location.jpg`,
@@ -728,9 +728,9 @@ function getAddLocationCard(){
         "buttons":[
             {
                 'type':'web_url','webview_height_ratio':'tall',
-                'url':`${Base.WEB_URL}/add_location`,
+                'url':`${Base.WEB_URL}/add_location?psid=${psid}`,
                 'title':'AGREGAR','messenger_extensions':'true',
-                'url':`${Base.WEB_URL}/add_location`
+                'url':`${Base.WEB_URL}/add_location?psid=${psid}`
             }
         ]
     }

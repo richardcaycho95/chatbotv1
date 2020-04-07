@@ -118,5 +118,9 @@ var self = module.exports = {
       POST_PEDIDO:'post_pedido',
       PEDIR_TELEFONO:'pedir_telefono',
       TELEFONO_SELECCIONADO:'telefono_seleccionado'
+  },
+  REPARTO:{
+    HORA_INICIO:'11:00 AM',
+    HORA_FIN:'3:00 PM'
   }
 }
