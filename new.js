@@ -468,7 +468,7 @@ async function saveLocation(body){
         if(usuario_selected.existe){ //si el usuario esta registrado en firebase(por su psid)
             db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).push(ubicacion)
         } else{ //si el usuario no está registrado, se procede a registrar
-            saveUser(psid,'ubicaciones',ubicacion)
+            saveUser(body.psid,'ubicaciones',ubicacion) 
         }
         resolve({'text':'Genial! Haz agregado correctamente tu ubicación 😎'})
     })
@@ -484,9 +484,15 @@ async function saveUser(psid,atributo,data){
     if (atributo=='ubicaciones') {
         new_usuario.ubicaciones= { "ubicacion_1": data }
     } else if (atributo=='telefonos') {
-        new_usuario.ubicaciones= { "telefono_1": data }
+        new_usuario.telefonos= { "telefono_1": data }
     }
-    db.ref('usuarios').push(new_usuario)
+    //verificar si el usuario ya está registrado, si es asi, se actualiza
+    let usuario = await getUsuarioByPsid(psid)
+    if (usuario.existe) {
+        db.ref(`usuarios/${usuario.key}/${atributo}`).push(data)
+    } else{
+        db.ref('usuarios').push(new_usuario)
+    }
 }
 /**
  * guarda el numero de celular del usuario y devuelve la data codificada agregando atributo 'celular'
