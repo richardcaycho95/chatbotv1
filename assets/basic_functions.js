@@ -61,16 +61,17 @@ var self = module.exports = {
 
     let today = new Date()
     today.setHours(today.getHours()-5)
-    let finally_hours = false
+    let finally_hours = true
 
     let hour_end=23
     let hour_start=21
+
+    let i_h=0
+    let i_m=0
     while (finally_hours) {
-      let i_h=0
-      let i_m=0
-      if(i_m>=30) {
+      if(i_m==60) {
         i_h++
-        i = 0
+        i_m = 0
       }
       let hour_now = today.getHours()+i_h
       let minute_now = today.getMinutes()+i_m
@@ -82,6 +83,7 @@ var self = module.exports = {
             payload:`SELECCIONAR_HORA_ENVIO--${hour_now}:${minute_now}`
           })
         }
+        i_m+=30
       } else{
         finally_hours=false
       }
