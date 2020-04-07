@@ -612,7 +612,6 @@ async function deletePrePedido(key,is_psid=false){
         let temp = await getUsuarioByPsid(key)
         my_key = temp.key
     }
-
     db.ref(`usuarios/${my_key}`).update({
         'created_at':'',
         'pre_pedido':''
@@ -682,7 +681,11 @@ async function templateTelefonoSeleccionado(psid,data_encoded){
     data_decoded.flujo = Base.FLUJO.TELEFONO_SELECCIONADO
     savePrePedido(psid,Base.encodeData(data_decoded))
 
-    callSendAPI(psid,{text:'Haz seleccionado un telefono, espera que revise el codigo y seguimos con el flujo'})
+    let data_qr = {
+        text:'Empezamos a repartir desde las 12:00pm hasta las 3:00pm\n¿A que hora deseas que te enviemos tu pedido?\n(Elige entre las opciones 👇)',
+        quick_replies:Base.getHorariosEnvio()
+    }
+    callSendAPI(psid,data_qr)
 }
 async function direccionSeleccionada(psid,ubicacion_encoded){ //se recoge el objeto ubicacion y se manda a la web
     let ubicacion_decoded = Base.decodeData(ubicacion_encoded)

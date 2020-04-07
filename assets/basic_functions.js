@@ -1,4 +1,4 @@
-module.exports={
+var self = module.exports = {
   fillInFirebase: function(snapshot){
     console.log(`snapshot: ${JSON.stringify(snapshot.val())}`)
     let temp_return=[]
@@ -36,18 +36,54 @@ module.exports={
       let buff = Buffer.from(JSON.stringify(decoded))
       return buff.toString('base64')
   },
-  getDate:function(date=''){
-    if (date=='') {
-      let today = new Date()
+  getDate:function(date='',only_hour=false){
+    let today
+    if(date==''){
+      today = new Date()
       today.setHours(today.getHours()-5)
-      let dd = String(today.getDate()).padStart(2, '0');
-      let mm = String(today.getMonth() + 1).padStart(2, '0')
-      let yyyy = today.getFullYear()
-      let h = String(today.getHours()).padStart(2,'0')
-      let m = String(today.getMinutes()).padStart(2,'0')
-      let i = String(today.getSeconds()).padStart(2,'0')
+    } else today = date
+
+    let dd = String(today.getDate()).padStart(2, '0');
+    let mm = String(today.getMonth() + 1).padStart(2, '0')
+    let yyyy = today.getFullYear()
+    let h = String(today.getHours()).padStart(2,'0')
+    let m = String(today.getMinutes()).padStart(2,'0')
+    let i = String(today.getSeconds()).padStart(2,'0')
+
+    if(only_hour){ //si solo se necesita la hora
+      return `${h}:${m}:${i}`
+    } else{
       return `${yyyy}-${mm}-${dd} ${h}:${m}:${i}`
     }
+  },
+  getHorariosEnvio: function(){
+    let hours_qr = []
+
+    let today = new Date()
+    today.setHours(today.getHours()-5)
+    let finally_hours = false
+    while (finally_hours) {
+      let i_h=0
+      let i_m=0
+      if(i_m>=30) {
+        i_h++
+        i = 0
+      }
+      let hour_now = today.getHours()+i_h
+      let minute_now = today.getMinutes()+i_m
+      if (hour_now<=15) {
+        if (hour_now>=11 && (hour_now<=15 && minute_now<=30)) {
+          hours_qr.push({
+            content_type:'text',
+            title:`${(hour_now>12)?(12-hour_now):hour_now}:${minute_now} ${(hour_now>12)?'PM':'AM'}`,
+            payload:`SELECCIONAR_HORA_ENVIO--${hour_now}:${minute_now}`
+          })
+        }
+      } else{
+        finally_hours=false
+      }
+    }
+    return hours_qr
   },
   GMAP_API_KEY: 'AIzaSyDxIn9qXbWD1lvSzHCiphSNw7_jiPK6obw',
   WEBHOOK_URL: 'https://vizarro.herokuapp.com',
