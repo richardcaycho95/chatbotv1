@@ -456,6 +456,7 @@ async function getUsuarioByPsid(psid){
     return usuario_selected
 }
 async function saveLocation(body){
+    console.log(`psid en savelocation: ${body.psid}`)
     let usuario_selected=await getUsuarioByPsid(body.psid)
     //objeto de ubicacion
     let ubicacion={
