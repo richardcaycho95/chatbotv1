@@ -62,6 +62,9 @@ var self = module.exports = {
     let today = new Date()
     today.setHours(today.getHours()-5)
     let finally_hours = false
+
+    let hour_end=23
+    let hour_start=21
     while (finally_hours) {
       let i_h=0
       let i_m=0
@@ -71,11 +74,11 @@ var self = module.exports = {
       }
       let hour_now = today.getHours()+i_h
       let minute_now = today.getMinutes()+i_m
-      if (hour_now<=15) {
-        if (hour_now>=11 && (hour_now<=15 && minute_now<=30)) {
+      if (hour_now<=hour_end) {
+        if (hour_now>=hour_start && (hour_now<=hour_end && minute_now<=30)) {
           hours_qr.push({
             content_type:'text',
-            title:`${(hour_now>12)?(12-hour_now):hour_now}:${minute_now} ${(hour_now>12)?'PM':'AM'}`,
+            title:`${(hour_now>hour_start)?(hour_start-hour_now):hour_now}:${minute_now} ${(hour_now>hour_start)?'PM':'AM'}`,
             payload:`SELECCIONAR_HORA_ENVIO--${hour_now}:${minute_now}`
           })
         }
