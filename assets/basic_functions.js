@@ -57,37 +57,47 @@ var self = module.exports = {
     }
   },
   getHorariosEnvio: function(){
-    let hours_qr = []
+    // let hours_qr = []
 
-    let today = new Date()
-    today.setHours(today.getHours()-5)
-    let finally_hours = true
+    // let today = new Date()
+    // today.setHours(today.getHours()-5)
+    // let finally_hours = true
 
-    let hour_end=23
-    let hour_start=21
+    // let hour_end=23
+    // let hour_start=21
 
-    let i_h=0
-    let i_m=0
-    while (finally_hours) {
-      if(i_m==60) {
-        i_h++
-        i_m = 0
-      }
-      let hour_now = today.getHours()+i_h
-      let minute_now = today.getMinutes()+i_m
-      if (hour_now<=hour_end) {
-        if (hour_now>=hour_start && (hour_now<=hour_end && minute_now<=30)) {
-          hours_qr.push({
-            content_type:'text',
-            title:`${(hour_now>hour_start)?(hour_start-hour_now):hour_now}:${minute_now} ${(hour_now>hour_start)?'PM':'AM'}`,
-            payload:`SELECCIONAR_HORA_ENVIO--${hour_now}:${minute_now}`
-          })
-        }
-        i_m+=30
-      } else{
-        finally_hours=false
-      }
-    }
+    // let i_h=0
+    // let i_m=0
+    // while (finally_hours) {
+    //   if(i_m==60) {
+    //     i_h++
+    //     i_m = 0
+    //   }
+    //   let hour_now = today.getHours()+i_h
+    //   let minute_now = today.getMinutes()+i_m
+    //   if (hour_now<=hour_end) {
+    //     if (hour_now>=hour_start && (hour_now<=hour_end && minute_now<=30)) {
+    //       hours_qr.push({
+    //         content_type:'text',
+    //         title:`${(hour_now>hour_start)?(hour_start-hour_now):hour_now}:${minute_now} ${(hour_now>hour_start)?'PM':'AM'}`,
+    //         payload:`SELECCIONAR_HORA_ENVIO--${hour_now}:${minute_now}`
+    //       })
+    //     }
+    //     i_m+=30
+    //   } else{
+    //     finally_hours=false
+    //   }
+    // }
+    let hours_qr = [
+      {content_type:'text',title:'11:00 AM',payload:'1'},
+      {content_type:'text',title:'11:30 AM',payload:'2'},
+      {content_type:'text',title:'12:00 PM',payload:'3'},
+      {content_type:'text',title:'12:30 PM',payload:'4'},
+      {content_type:'text',title:'1:00 PM',payload:'5'},
+      {content_type:'text',title:'1:30 PM',payload:'6'},
+      {content_type:'text',title:'2:00 PM',payload:'7'},
+      {content_type:'text',title:'2:30 PM',payload:'8'}
+    ]
     return hours_qr
   },
   GMAP_API_KEY: 'AIzaSyDxIn9qXbWD1lvSzHCiphSNw7_jiPK6obw',
