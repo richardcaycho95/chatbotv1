@@ -171,10 +171,8 @@ async function handleMessage(sender_psid,received_message){
         let data = await getPrePedidoByPsid(sender_psid)
         console.log(data)
         if (data=='' || data===undefined) { //si no hay prepedido
-            getSaludo(sender_psid).then(response =>{
-                callSendAPI(sender_psid,response).then(r =>{ //creando el saludo
-                    callSendAPI(sender_psid,getBloqueInicial()) //creando bloque inicial
-                })
+            sendSaludo(sender_psid).then(_ =>{
+                callSendAPI(sender_psid,getBloqueInicial()) //creando bloque inicial
             })
         } else{
             //si el usuario tiene un pre pedido pendiente
@@ -271,7 +269,7 @@ async function handlePostback(sender_psid,received_postback){
             })
             break;
         case 'GET_STARTED':
-            callSendAPI(sender_psid,{'text':'Bienvenido al delivery virtual :)'})
+            templateGetStarted(sender_psid)
             break;
         default:
             break;
@@ -348,18 +346,29 @@ async function typing(psid,time){
  * retorna una promesa con el objeto que tiene el saludo con el nombre
  * @param {Number} sender_psid id del usuario
  */
-function getSaludo(sender_psid){
+async function sendSaludo(psid){
+    return new Promise((resolve,reject) =>{
+        getUserDataFromFacebook(psid).then(response =>{
+            callSendAPI(psid,{text:`Hola ${response.first_name} 😊\nDesliza para que veas nuestras opciones 👇👇👇`})
+        })
+        resolve()
+    })
+}
+/**
+ * retora la información publica del usuario que se tiene en facebook (first_name,last_name,etc) en formato json
+ * @param {*} psid id del usuario
+ */
+async function getUserDataFromFacebook(psid){
     return new Promise((resolve,reject)=>{
         request({
             'uri':`https://graph.facebook.com/${sender_psid}?fields=first_name,last_name,profile_pic&access_token=${Base.PAGE_ACCESS_TOKEN}`,
             'method': 'GET'
         },(err,res,body)=>{
             if (!err) {
-                body=JSON.parse(body)
-                resolve({'text': `Hola ${body.first_name} 😊\nDesliza para que veas nuestras opciones 👇👇👇`})
+                resolve(JSON.parse(body))
             } else{
                 console.error('No se puede responder')
-                reject()
+                reject(err)
             }
         })
     })
@@ -691,6 +700,14 @@ async function templateDirecciones(psid){
             callSendAPI(psid,BaseJson.getGenericBlock(elements))
         })
     }
+}
+/**
+ * template que se muestra cuando el usuario presiona el botón EMPEZAR
+ * @param {Number} psid id del usuario
+ */
+async function templateGetStarted(psid){
+    let response = await getUserDataFromFacebook(psid)
+    callSendAPI(psid,{text:`Hola ${response.first_name}, te damos la bienvenida a `})
 }
 async function templateTelefonoSeleccionado(psid,data_encoded){
     let data_decoded = Base.decodeData(data_encoded)
