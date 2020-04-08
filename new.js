@@ -361,7 +361,7 @@ async function sendSaludo(psid){
 async function getUserDataFromFacebook(psid){
     return new Promise((resolve,reject)=>{
         request({
-            'uri':`https://graph.facebook.com/${sender_psid}?fields=first_name,last_name,profile_pic&access_token=${Base.PAGE_ACCESS_TOKEN}`,
+            'uri':`https://graph.facebook.com/${psid}?fields=first_name,last_name,profile_pic&access_token=${Base.PAGE_ACCESS_TOKEN}`,
             'method': 'GET'
         },(err,res,body)=>{
             if (!err) {
@@ -707,7 +707,9 @@ async function templateDirecciones(psid){
  */
 async function templateGetStarted(psid){
     let response = await getUserDataFromFacebook(psid)
-    callSendAPI(psid,{text:`Hola ${response.first_name}, te damos la bienvenida a `})
+    callSendAPI(psid,{text:`Hola ${response.first_name}, te presentamos a ${Base.NOMBRE_BOT},nuestro asistente virtual 🤖, que es parte de una nueva experiencia de delivery que el Restaurante Sabor Peruano pone a tu disposición 🤗. \n\nEn unos simples pasos podrás realizar tu pedido desde la comodidad de tu hogar o desde donde te encuentres, ${Base.NOMBRE_BOT} te hará unas sencillas preguntas para concretar tu pedido.\n\nA continuación te enseñamos como funciona nuestro asistente virtual`}).then(_ =>{
+        callSendAPI(psid,BaseJson.getImage(Base.IMG_INSTRUCCIONES))
+    })
 }
 async function templateTelefonoSeleccionado(psid,data_encoded){
     let data_decoded = Base.decodeData(data_encoded)

@@ -119,6 +119,8 @@ var self = module.exports = {
       PEDIR_TELEFONO:'pedir_telefono',
       TELEFONO_SELECCIONADO:'telefono_seleccionado'
   },
+  NOMBRE_BOT:'Herbie',
+  IMG_INSTRUCCIONES:`${self.WEBHOOK_URL}/instrucciones.jpg`,
   REPARTO:{
     HORA_INICIO:'11:00 AM',
     HORA_FIN:'3:00 PM'

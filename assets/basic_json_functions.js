@@ -51,4 +51,13 @@ var self = module.exports = {
         }
         return self.getTemplateButton(data)
     },
+    getImage:function(img_url){
+        return {
+            type:'image',
+            payload:{
+                url:img_url,
+                is_reusable:true
+            }
+        }
+    }
 }
