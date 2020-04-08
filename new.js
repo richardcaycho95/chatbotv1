@@ -320,7 +320,7 @@ async function typing(psid,time){
         "sender_action":"typing_on"
     }
     await request({
-        'uri':`https://graph.facebook.com/v6.0/me/messages`,
+        'uri':`https://graph.facebook.com/v2.6/me/messages`,
         'qs':{ 'access_token': Base.PAGE_ACCESS_TOKEN },
         'method': 'POST',
         'json': requestBody
@@ -330,7 +330,7 @@ async function typing(psid,time){
         setTimeout(() => {
             requestBody.sender_action='typing_off'
             request({
-                'uri':`https://graph.facebook.com/v6.0/me/messages`,
+                'uri':`https://graph.facebook.com/v2.6/me/messages`,
                 'qs':{ 'access_token': Base.PAGE_ACCESS_TOKEN },
                 'method': 'POST',
                 'json': requestBody
