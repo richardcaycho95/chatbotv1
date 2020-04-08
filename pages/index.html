@@ -8,9 +8,12 @@
 <body>
     <script id="Messenger" src="https://restaurante-saborperuano.netlify.com/js/messenger.Extensions.js"></script>
     <script>
-        MessengerExtensions.requestCloseBrowser(function success() {}, function error(err) {
-            console.log(err)
-        })
+        alert(JSON.stringify(MessengerExtensions))
+        setTimeout(() => {
+            MessengerExtensions.requestCloseBrowser(function success() {}, function error(err) {
+                alert.log(err)
+            })
+        }, 3000);
     </script>
 </body>
 </html>
