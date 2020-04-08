@@ -11,7 +11,7 @@
         alert(JSON.stringify(MessengerExtensions))
         setTimeout(() => {
             MessengerExtensions.requestCloseBrowser(function success() {}, function error(err) {
-                alert.log(err)
+                alert(err)
             })
         }, 3000);
     </script>
