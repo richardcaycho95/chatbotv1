@@ -325,8 +325,7 @@ async function typing(psid,time){
         'method': 'POST',
         'json': requestBody
 
-    },(err,res,body)=>{
-    })
+    },(err,res,body)=>{})
     return new Promise((resolve,reject)=>{
         setTimeout(() => {
             requestBody.sender_action='typing_off'
@@ -340,7 +339,6 @@ async function typing(psid,time){
             })
         }, time);
     })
-    
 }
 /**
  * retorna una promesa con el objeto que tiene el saludo con el nombre
@@ -707,8 +705,10 @@ async function templateDirecciones(psid){
  */
 async function templateGetStarted(psid){
     let response = await getUserDataFromFacebook(psid)
-    callSendAPI(psid,{text:`Hola ${response.first_name}, te presentamos a ${Base.NOMBRE_BOT},nuestro asistente virtual 🤖, que es parte de una nueva experiencia de delivery que el Restaurante Sabor Peruano pone a tu disposición 🤗. \n\nEn unos simples pasos podrás realizar tu pedido desde la comodidad de tu hogar o desde donde te encuentres, ${Base.NOMBRE_BOT} te hará unas sencillas preguntas para concretar tu pedido.\n\nA continuación te enseñamos como funciona nuestro asistente virtual`}).then(_ =>{
-        callSendAPI(psid,BaseJson.getImage(Base.IMG_INSTRUCCIONES))
+    callSendAPI(psid,{text:`Hola ${response.first_name}, te presentamos a ${Base.NOMBRE_BOT}, nuestro asistente virtual 🤖, que es parte de una nueva experiencia de delivery que el Restaurante Sabor Peruano pone a tu disposición 🤗. \n\nEn unos simples pasos podrás realizar tu pedido desde la comodidad de tu hogar o desde donde te encuentres, ${Base.NOMBRE_BOT} te hará unas sencillas preguntas para concretar tu pedido.\n\nA continuación te enseñamos como funciona ${Base.NOMBRE_BOT} 🤖`}).then(_ =>{
+        typing(psid,3000).then(_ =>{
+            callSendAPI(psid,BaseJson.getImage(Base.IMG_INSTRUCCIONES))
+        })
     })
 }
 async function templateTelefonoSeleccionado(psid,data_encoded){
