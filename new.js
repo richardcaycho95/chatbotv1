@@ -99,9 +99,6 @@ app.get('/pedidopostback',(req,res)=>{
                 created_at:Base.getDate()
             }
 
-            // res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
-            res.sendFile(`${__dirname}/pages/index.html`)
-
             typing(data.psid,5000).then( __ =>{
                 let text = 'Tu pedido es el siguiente:\n'
                 text+=Base.getTextPedidoFromArray(data.pedido.entradas,'ENTRADAS')
@@ -117,9 +114,11 @@ app.get('/pedidopostback',(req,res)=>{
                     templateAfterPedido(data.psid,data)
                 })
             })
+            // res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
+            res.sendFile(`${__dirname}/pages/index.html`)
         }
     } else{
-        callSendAPI(body.psid,{text:'Lo sentimos, ha pasado mucho tiempo desde que empezaste con tu pedido, por favor, inicia nuevamente'})
+        callSendAPI(body.psid,{text:'Lo sentimos, ha pasado mucho tiempo desde que empezaste con tu pedido, por favor, escribenos para iniciar nuevamente'})
     }
 });
 app.get('/add_location_postback',(req,res)=>{
@@ -128,10 +127,11 @@ app.get('/add_location_postback',(req,res)=>{
     if(body.psid!=''){
         let psid=body.psid
         saveLocation(body).then( response =>{ //devuelve el formato de respuesta para enviar al usuario
-            res.status(200).send('<h1>Por favor cierra esta ventana para seguir con el pedido</h1>')
             //luego de guardar, se llama a la funcion para obtener las direcciones
             callSendAPI(psid,response).then( _ => {
                 templateDirecciones(psid)
+                //res.status(200).send('<h1>Por favor cierra esta ventana para seguir con el pedido</h1>')
+                res.sendFile(`${__dirname}/pages/index.html`)
             })
         })
     } else{
