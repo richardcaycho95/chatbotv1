@@ -53,10 +53,12 @@ var self = module.exports = {
     },
     getImage:function(img_url){
         return {
-            type:'image',
-            payload:{
-                url:img_url,
-                is_reusable:true
+            attachment:{
+                type:'image',
+                payload:{
+                    url:img_url,
+                    is_reusable:true
+                }
             }
         }
     }
