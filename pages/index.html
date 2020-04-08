@@ -6,14 +6,24 @@
     <title>Delivery</title>
 </head>
 <body>
-    <script id="Messenger" src="https://restaurante-saborperuano.netlify.com/js/messenger.Extensions.js"></script>
     <script>
-        alert(JSON.stringify(MessengerExtensions))
-        setTimeout(() => {
-            MessengerExtensions.requestCloseBrowser(function success() {}, function error(err) {
+        (function(d, s, id){
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) {return;}
+            js = d.createElement(s); js.id = id;
+            //js.src = "//connect.facebook.com/en_US/messenger.Extensions.js";
+            js.src = "https://restaurante-saborperuano.netlify.com/js/messenger.Extensions.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'Messenger'));
+
+        document.addEventListener('load',function(){
+            alert(JSON.stringify(MessengerExtensions))
+            MessengerExtensions.requestCloseBrowser(function success() {
+                console.log('cerrando ventana')
+            }, function error(err) {
                 alert(err)
             })
-        }, 3000);
+        })
     </script>
 </body>
 </html>
