@@ -120,7 +120,7 @@ var self = module.exports = {
       TELEFONO_SELECCIONADO:'telefono_seleccionado'
   },
   NOMBRE_BOT:'Herbie',
-  IMG_INSTRUCCIONES:`${self.WEBHOOK_URL}/instrucciones.jpg`,
+  IMG_INSTRUCCIONES:`https://restaurante-saborperuano.netlify.com/instrucciones.jpg`,
   REPARTO:{
     HORA_INICIO:'11:00 AM',
     HORA_FIN:'3:00 PM'
