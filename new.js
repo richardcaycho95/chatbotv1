@@ -335,6 +335,7 @@ async function typing(psid,time){
                 'method': 'POST',
                 'json': requestBody
             },(err,res,body)=>{
+                console.log(err)
                 resolve()
             })
         }, time);
