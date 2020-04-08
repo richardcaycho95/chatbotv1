@@ -15,15 +15,13 @@
             js.src = "https://restaurante-saborperuano.netlify.com/js/messenger.Extensions.js";
             fjs.parentNode.insertBefore(js, fjs);
         }(document, 'script', 'Messenger'));
-
-        document.addEventListener('load',function(){
-            alert(JSON.stringify(MessengerExtensions))
+        window.extAsyncInit= function(){
             MessengerExtensions.requestCloseBrowser(function success() {
                 console.log('cerrando ventana')
             }, function error(err) {
                 alert(err)
             })
-        })
+        }
     </script>
 </body>
 </html>
