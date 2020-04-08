@@ -325,7 +325,7 @@ async function typing(psid,time){
         'method': 'POST',
         'json': requestBody
 
-    },(err,res,body)=>{})
+    },(err,res,body)=>{ console.log(body)})
     return new Promise((resolve,reject)=>{
         setTimeout(() => {
             requestBody.sender_action='typing_off'
@@ -335,7 +335,7 @@ async function typing(psid,time){
                 'method': 'POST',
                 'json': requestBody
             },(err,res,body)=>{
-                console.log(err)
+                console.log(body)
                 resolve()
             })
         }, time);
