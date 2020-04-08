@@ -99,7 +99,8 @@ app.get('/pedidopostback',(req,res)=>{
                 created_at:Base.getDate()
             }
 
-            res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
+            // res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
+            res.sendFile(`${__dirname}/pages/index.html`)
 
             typing(data.psid,5000).then( __ =>{
                 let text = 'Tu pedido es el siguiente:\n'
@@ -314,9 +315,7 @@ async function callSendAPI(sender_psid,response,messaging_type='RESPONSE'){
  */
 async function typing(psid,time){
     let requestBody = {
-        "recipient":{
-            "id":psid
-        },
+        "recipient":{ "id":psid },
         "sender_action":"typing_on"
     }
     await request({
