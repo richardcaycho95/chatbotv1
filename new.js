@@ -727,24 +727,22 @@ async function direccionSeleccionada(psid,ubicacion_encoded){ //se recoge el obj
     ubicacion_decoded.flujo = Base.FLUJO.DIRECCION_SELECCIONADA
     ubicacion_decoded.created_at = Base.getDate()
     let str_ubicacion = JSON.stringify(ubicacion_decoded)
-
+    let url = `${Base.WEB_URL}?ubicacion=${str_ubicacion}&psid=${psid}`
     let data={
-        'text':`Para elegir tu pedido, selecciona CONTINUAR ✅`,
+        'text':`Haz elegido *${ubicacion_decoded.referencia}* como dirección de envío 📌.\n\nPara elegir el menú, selecciona VER MENÚ 🍛(y espera unos segundos que se abra la ventana)\nSi deseas cambiar la dirección, presiona CAMBIAR DIRECCION 🔄`,
         'buttons':[
             {
-                'type':'web_url','url':`${Base.WEB_URL}?ubicacion=${str_ubicacion}&psid=${psid}`,
-                'title':'CONTINUAR ✅','webview_height_ratio':'tall',
-                'messenger_extensions':'true','fallback_url':`${Base.WEB_URL}?ubicacion=${str_ubicacion}&psid=${psid}`
+                'type':'web_url','url':url,
+                'title':'VER MENÚ 🍛','webview_height_ratio':'tall',
+                'messenger_extensions':'true','fallback_url':url
             },
-            {'type':'postback','title':'CAMBIAR DIRECCION','payload':'RP_DIRECCIONES'}
+            {'type':'postback','title':'CAMBIAR DIRECCION 🔄','payload':'RP_DIRECCIONES'}
         ]
     }
 
     let data_encoded = Base.encodeData(ubicacion_decoded)
     savePrePedido(psid,data_encoded).then(_ =>{
-        callSendAPI(psid,{text: `Genial, haz elegido ${ubicacion_decoded.referencia} como dirección de envio`}).then(__ =>{
-            callSendAPI(psid,BaseJson.getTemplateButton(data))
-        })
+        callSendAPI(psid,BaseJson.getTemplateButton(data))
     })
 }
 /********************************************
@@ -775,9 +773,3 @@ function getAddPhoneCard(data_encoded){
         ]
     }
 }
-
-// app.use(function(req, res, next) {
-//     res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
-//     //res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
-//     next()
-// })
