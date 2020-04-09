@@ -106,15 +106,14 @@ app.get('/pedidopostback',(req,res)=>{
                 text+=Base.getTextPedidoFromArray(data.complementos.gaseosas,'GASEOSAS')
                 text+=Base.getTextPedidoFromArray(data.complementos.postres,'POSTRES')
 
-                text+=(data.comentario=='')?'':`\nComentario: ${data.comentario}`
-                text+=`\nEnviar a: ${data.ubicacion.referencia}`
-                text+=`\nTotal a pagar: ${data.total}`
+                text+=(data.comentario=='')?'':`\n*Comentario:* ${data.comentario}`
+                text+=`\n*Enviar a:* ${data.ubicacion.referencia}`
+                text+=`\n*Total a pagar:* ${data.total}`
 
                 callSendAPI(data.psid,{"text": text}).then(_ =>{
                     templateAfterPedido(data.psid,data)
                 })
             })
-            // res.status(200).send('<center><h1>Cierra esta ventana para poder seguir con el pedido :)</h1></center>')
             res.sendFile(`${__dirname}/pages/index.html`)
         }
     } else{
@@ -130,7 +129,6 @@ app.get('/add_location_postback',(req,res)=>{
             //luego de guardar, se llama a la funcion para obtener las direcciones
             callSendAPI(psid,response).then( _ => {
                 templateDirecciones(psid)
-                //res.status(200).send('<h1>Por favor cierra esta ventana para seguir con el pedido</h1>')
                 res.sendFile(`${__dirname}/pages/index.html`)
             })
         })
@@ -258,7 +256,7 @@ async function handlePostback(sender_psid,received_postback){
         case 'CANCELAR_PREPEDIDO':
             if(pre_pedido!=''){ // si hay pre_pedido
                 deletePrePedido(sender_psid,true).then(_ =>{
-                    callSendAPI(sender_psid,{text:'Nuestro chatbot está listo para recibir tus ordenes, solo escibenos cuando desees 😊'})
+                    callSendAPI(sender_psid,{text:`${Base.NOMBRE_BOT} está listo para recibir tus ordenes, solo escibenos cuando desees 😊`})
                 })
             } else{ //si el pre_pedido ya ha sido eliminado y el usuario siue presionando el mismo botón
                 callSendAPI(sender_psid,{text:'Ya se eliminó tu pedido... No olvides que nuestro chatbot está listo para recibir tus ordenes 😊'})
@@ -346,17 +344,17 @@ async function typing(psid,time){
  */
 async function sendSaludo(psid){
     return new Promise((resolve,reject) =>{
-        getUserDataFromFacebook(psid).then(response =>{
+        getProfileFromFacebook(psid).then(response =>{
             callSendAPI(psid,{text:`Hola ${response.first_name} 😊\nDesliza para que veas nuestras opciones 👇👇👇`})
         })
         resolve()
     })
 }
 /**
- * retora la información publica del usuario que se tiene en facebook (first_name,last_name,etc) en formato json
+ * retorna la información publica del usuario que se tiene en facebook (first_name,last_name,etc) en formato json
  * @param {*} psid id del usuario
  */
-async function getUserDataFromFacebook(psid){
+async function getProfileFromFacebook(psid){
     return new Promise((resolve,reject)=>{
         request({
             'uri':`https://graph.facebook.com/${psid}?fields=first_name,last_name,profile_pic&access_token=${Base.PAGE_ACCESS_TOKEN}`,
@@ -704,8 +702,8 @@ async function templateDirecciones(psid){
  * @param {Number} psid id del usuario
  */
 async function templateGetStarted(psid){
-    let response = await getUserDataFromFacebook(psid)
-    await callSendAPI(psid,{text:`Hola ${response.first_name}, te presentamos a ${Base.NOMBRE_BOT}, nuestro asistente virtual 🤖, que es parte de una nueva experiencia de delivery que el Restaurante Sabor Peruano pone a tu disposición 🤗. \n\nEn unos simples pasos podrás realizar tu pedido desde la comodidad de tu hogar o desde donde te encuentres, ${Base.NOMBRE_BOT} te hará unas sencillas preguntas para concretar tu pedido.\n\nA continuación te enseñamos como funciona ${Base.NOMBRE_BOT} 🤖`})
+    let response = await getProfileFromFacebook(psid)
+    await callSendAPI(psid,{text:`Hola ${response.first_name}, te presentamos a ${Base.NOMBRE_BOT}, nuestro asistente virtual 🤖, que es parte de una nueva experiencia de delivery que el *Restaurante Sabor Peruano* pone a tu disposición 🤗. \n\nEn unos simples pasos podrás realizar tu pedido desde la comodidad de tu hogar o desde donde te encuentres, ${Base.NOMBRE_BOT} te hará unas sencillas preguntas para concretar tu pedido.\n\nA continuación te enseñamos como funciona ${Base.NOMBRE_BOT} 🤖`})
 
     typing(psid,4000).then(_ =>{
         callSendAPI(psid,BaseJson.getImage(Base.IMG_INSTRUCCIONES))
@@ -717,7 +715,7 @@ async function templateTelefonoSeleccionado(psid,data_encoded){
     savePrePedido(psid,Base.encodeData(data_decoded))
 
     let data_qr = {
-        text:`Empezamos a repartir desde las ${Base.REPARTO.HORA_INICIO} hasta las ${Base.REPARTO.HORA_FIN}\n¿A que hora deseas que te enviemos tu pedido?\n(Elige entre las opciones 👇):`,
+        text:`Empezamos a repartir desde las *${Base.REPARTO.HORA_INICIO}* hasta las *${Base.REPARTO.HORA_FIN}*\n¿A que hora deseas que te enviemos tu pedido?\n(Elige entre las opciones 👇):`,
         'quick_replies':Base.getHorariosEnvio()
     }
     callSendAPI(psid,data_qr)
@@ -726,10 +724,10 @@ async function direccionSeleccionada(psid,ubicacion_encoded){ //se recoge el obj
     let ubicacion_decoded = Base.decodeData(ubicacion_encoded)
     ubicacion_decoded.flujo = Base.FLUJO.DIRECCION_SELECCIONADA
     ubicacion_decoded.created_at = Base.getDate()
-    let str_ubicacion = JSON.stringify(ubicacion_decoded)
-    let url = `${Base.WEB_URL}?ubicacion=${str_ubicacion}&psid=${psid}`
+    let url = `${Base.WEB_URL}?ubicacion=${JSON.stringify(ubicacion_decoded)}&psid=${psid}`
     let data={
-        'text':`Haz elegido *${ubicacion_decoded.referencia}* como dirección de envío 📌.\n\nPara elegir el menú, selecciona VER MENÚ 🍛(y espera unos segundos que se abra la ventana)\nSi deseas cambiar la dirección, presiona CAMBIAR DIRECCION 🔄`,
+ 
+        'text':`Haz elegido *${ubicacion_decoded.referencia}* como dirección de envío 📌\n\nPara elegir tu menú, selecciona *VER MENÚ* 🍛(y espera unos segundos que se abra la ventana)\nSi deseas cambiar la dirección, presiona *CAMBIAR DIRECCION* ✏`,
         'buttons':[
             {
                 'type':'web_url','url':url,
@@ -749,23 +747,24 @@ async function direccionSeleccionada(psid,ubicacion_encoded){ //se recoge el obj
  * FUNCIONES BASES PARA LA CREACION DE FORMATOS JSON
  * ****************************************** */ 
 function getAddLocationCard(psid){
+    let url = `${Base.WEB_URL}/add_location?psid=${psid}`
     return {
-        "title":'Añade una ubicación',
+        "title":'Agrega una ubicación',
         "image_url":`${Base.WEBHOOK_URL}/add_location.jpg`,
         "subtitle":"",
         "buttons":[
             {
                 'type':'web_url','webview_height_ratio':'tall',
-                'url':`${Base.WEB_URL}/add_location?psid=${psid}`,
+                'url':url,
                 'title':'AGREGAR','messenger_extensions':'true',
-                'url':`${Base.WEB_URL}/add_location?psid=${psid}`
+                'url':url
             }
         ]
     }
 }
 function getAddPhoneCard(data_encoded){
     return {
-        "title":'Añade un número de celular 📲:',
+        "title":'Agrega un número de celular 📲',
         "image_url":`${Base.WEBHOOK_URL}/add_location.jpg`,
         "subtitle":"",
         "buttons":[

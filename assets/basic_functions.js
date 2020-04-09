@@ -22,7 +22,7 @@ var self = module.exports = {
   },
   getTextPedidoFromArray:function(data,title=''){ //el texto ya tiene un formato definido
       let temp_text =''
-      if(data.length > 0) { temp_text+=`\n${title}:\n` }
+      if(data.length > 0) { temp_text+=`\n*${title}:*\n` }
       data.map( element =>{
           temp_text+=`✅ ${element.text} (${element.cantidad}) \n`
       })
@@ -119,7 +119,7 @@ var self = module.exports = {
       PEDIR_TELEFONO:'pedir_telefono',
       TELEFONO_SELECCIONADO:'telefono_seleccionado'
   },
-  NOMBRE_BOT:'Herbie',
+  NOMBRE_BOT:'*HERBIE*',
   IMG_INSTRUCCIONES:`https://restaurante-saborperuano.netlify.com/instrucciones.jpg`,
   REPARTO:{
     HORA_INICIO:'11:00 AM',
