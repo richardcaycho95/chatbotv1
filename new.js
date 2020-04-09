@@ -106,9 +106,9 @@ app.get('/pedidopostback',(req,res)=>{
                 text+=Base.getTextPedidoFromArray(data.complementos.gaseosas,'GASEOSAS')
                 text+=Base.getTextPedidoFromArray(data.complementos.postres,'POSTRES')
 
-                text+=(data.comentario=='')?'':`\n*Comentario:* ${data.comentario}`
-                text+=`\n*Enviar a:* ${data.ubicacion.referencia}`
-                text+=`\n*Total a pagar:* ${data.total}`
+                text+=(data.comentario=='')?'':`\nComentario: ${data.comentario}`
+                text+=`\nEnviar a: ${data.ubicacion.referencia}`
+                text+=`\nTotal a pagar: ${data.total}`
 
                 callSendAPI(data.psid,{"text": text}).then(_ =>{
                     templateAfterPedido(data.psid,data)
@@ -228,6 +228,11 @@ async function handlePostback(sender_psid,received_postback){
                 templateDirecciones(sender_psid)
             }
             break;
+        case 'RP_CAMBIAR_DIRECCION': //cuando el usuario desea cambiar  su dirección
+            if (pre_pedido!='') { //si hay un pre_pedido (ya hay una dirección almacenada)
+                deletePrePedido(sender_psid,true)
+            }
+            templateDirecciones(sender_psid)
         case 'RP_DIR_SELECCIONADA': //cuando el usuario selecciona una dirección mostrada, aca recien se empezará a crear el pre_pedido
             if (pre_pedido!='') { //si hay un pre_pedido, mandar al flujo
                 managePrePedido(sender_psid,pre_pedido)
@@ -579,7 +584,7 @@ function getBloqueInicial(){
 async function managePrePedido(psid,pre_pedido){
     let data_decoded = Base.decodeData(pre_pedido)
     let flujo = Base.FLUJO
-    typing(psid,3000).then(_ => {
+    typing(psid,2100).then(_ => {
         callSendAPI(psid,{text:'Debes seguir el flujo de la conversación para tomar tu pedido correctamente... Te guiaremos donde te quedaste:'}).then(__ =>{
             switch (data_decoded.flujo) {
                 case flujo.PEDIR_DIRECCION:
@@ -715,26 +720,31 @@ async function templateTelefonoSeleccionado(psid,data_encoded){
     savePrePedido(psid,Base.encodeData(data_decoded))
 
     let data_qr = {
-        text:`Empezamos a repartir desde las *${Base.REPARTO.HORA_INICIO}* hasta las *${Base.REPARTO.HORA_FIN}*\n¿A que hora deseas que te enviemos tu pedido?\n(Elige entre las opciones 👇):`,
+        text:`Empezamos a repartir desde las ${Base.REPARTO.HORA_INICIO} hasta las ${Base.REPARTO.HORA_FIN}\n¿A que hora deseas que te enviemos tu pedido?\n(Elige entre las opciones 👇):`,
         'quick_replies':Base.getHorariosEnvio()
     }
     callSendAPI(psid,data_qr)
 }
-async function direccionSeleccionada(psid,ubicacion_encoded){ //se recoge el objeto ubicacion y se manda a la web
+/**
+ * se recoge el objeto ubicacion y se manda a la web
+ * @param {*} psid id del usuario
+ * @param {*} ubicacion_encoded data pre_pedido codificada
+ */
+async function direccionSeleccionada(psid,ubicacion_encoded){
     let ubicacion_decoded = Base.decodeData(ubicacion_encoded)
     ubicacion_decoded.flujo = Base.FLUJO.DIRECCION_SELECCIONADA
     ubicacion_decoded.created_at = Base.getDate()
     let url = `${Base.WEB_URL}?ubicacion=${JSON.stringify(ubicacion_decoded)}&psid=${psid}`
     let data={
  
-        'text':`Haz elegido *${ubicacion_decoded.referencia}* como dirección de envío 📌\n\nPara elegir tu menú, selecciona *VER MENÚ* 🍛(y espera unos segundos que se abra la ventana)\nSi deseas cambiar la dirección, presiona *CAMBIAR DIRECCION* ✏`,
+        'text':`Haz elegido *${ubicacion_decoded.referencia}* como dirección de envío 📌\n\nPara elegir tu menú, selecciona VER MENÚ 🍛 (y espera unos segundos que se abra la ventana)\n\nSi deseas cambiar la dirección, selecciona CAMBIAR DIRECCIÓN 🔄`,
         'buttons':[
             {
                 'type':'web_url','url':url,
                 'title':'VER MENÚ 🍛','webview_height_ratio':'tall',
                 'messenger_extensions':'true','fallback_url':url
             },
-            {'type':'postback','title':'CAMBIAR DIRECCION 🔄','payload':'RP_DIRECCIONES'}
+            {'type':'postback','title':'CAMBIAR DIRECCIÓN 🔄','payload':'RP_CAMBIAR_DIRECCION'}
         ]
     }
 
