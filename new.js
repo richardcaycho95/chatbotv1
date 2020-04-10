@@ -141,15 +141,23 @@ app.get('/add_location_postback',(req,res)=>{
 /**************************************************************/
 //handle quick replies
 async function handleQuickReply(sender_psid,message){
-    const payload=message.quick_reply.payload;
-
+    const payload = message.quick_reply.payload
+    let data_encoded = await getPrePedidoByPsid(sender_psid)
+    let response = payload.split('--')
     let phone = {initial: payload.substr(0,3), size: payload.length }
-    console.log(phone)
+
     if (phone.initial =='+51' && phone.size == 12) { //si el texto tiene indicios de ser el celular
-        let data_encoded = await getPrePedidoByPsid(sender_psid)
         if (data_encoded!='') { //si la data aun no se ha eliminado
             savePhoneNumber(sender_psid,payload,data_encoded).then(response => {
                 pedirTelefono(sender_psid,response)
+            })
+        }
+    }
+    //cuando el usuario elige una sugerencia de horario de envio
+    if(response[0]=='HORA_ENVIO'){
+        if (data_encoded!='') { //si la data aun no se ha eliminado
+            saveHorarioEnvio(sender_psid,payload,data_encoded).then(response => {
+                //sendPedido(sender_psid,response)
             })
         }
     }
@@ -529,6 +537,20 @@ async function savePhoneNumber(psid,number,data_encoded){
         resolve(Base.encodeData(data_decoded))
     })
 }
+/**
+ * guarda horario de envio que elegió el usuario y devuelve la data codificada agregando atributo 'horario_envio'
+ * @param {*} psid id del usuario
+ * @param {*} horario 
+ * @param {*} data_encoded 
+ */
+async function saveHorarioEnvio(psid,horario,data_encoded){
+    let data_decoded = Base.decodeData(data_encoded)
+    return new Promise((resolve,reject)=>{
+        data_decoded.horario_envio = horario
+        await savePrePedido(psid,Base.encodeData(data_decoded))
+        resolve(Base.encodeData(data_decoded))
+    })
+}
 function getBloqueInicial(){
     //data:es un bloque,un mensaje y contiene elementos(cards)
     let data=[
@@ -720,8 +742,8 @@ async function templateTelefonoSeleccionado(psid,data_encoded){
     savePrePedido(psid,Base.encodeData(data_decoded))
 
     let data_qr = {
-        text:`Empezamos a repartir desde las ${Base.REPARTO.HORA_INICIO} hasta las ${Base.REPARTO.HORA_FIN}\n¿A que hora deseas que te enviemos tu pedido?\n(Elige entre las opciones 👇):`,
-        'quick_replies':Base.getHorariosEnvio()
+        text:`Empezamos a repartir desde las ${Base.REPARTO.HORA_INICIO} hasta las ${Base.REPARTO.HORA_FIN}\nEscribe a que hora deseas que te enviemos tu pedido:\n(Acá te dejamos algunas sugerencias 👇)`,
+        'quick_replies':Base.getSugerenciaHorariosEnvio()
     }
     callSendAPI(psid,data_qr)
 }
