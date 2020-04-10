@@ -647,6 +647,9 @@ async function managePrePedido(psid,pre_pedido){
                 case flujo.TELEFONO_SELECCIONADO:
                     
                     break;
+                case flujo.HORARIO_ENVIO_GUARDADO:
+                    sendDetailPrePedido(psid,pre_pedido)
+                    break;
                 default:
                     break;
             }
