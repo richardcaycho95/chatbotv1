@@ -547,8 +547,9 @@ async function saveHorarioEnvio(psid,horario,data_encoded){
     let data_decoded = Base.decodeData(data_encoded)
     return new Promise((resolve,reject)=>{
         data_decoded.horario_envio = horario
-        await savePrePedido(psid,Base.encodeData(data_decoded))
-        resolve(Base.encodeData(data_decoded))
+        savePrePedido(psid,Base.encodeData(data_decoded)).then(_ =>{
+            resolve(Base.encodeData(data_decoded))
+        })
     })
 }
 function getBloqueInicial(){
