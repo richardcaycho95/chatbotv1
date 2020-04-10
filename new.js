@@ -382,7 +382,7 @@ async function sendDetailPrePedido(psid,data_encoded){
     response = {
         text: temp_text
     }
-    callSendAPI(psid,{text:JSON.stringify(Base.decodeData(data_encoded))})
+    callSendAPI(psid,response)
 }
 /**
  * retorna la información publica del usuario que se tiene en facebook (first_name,last_name,etc) en formato json
