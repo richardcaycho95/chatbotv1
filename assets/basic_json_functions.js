@@ -29,7 +29,11 @@ var self = module.exports = {
             }
         }
     },
-    getTemplateButton:function(elements){ //debe tener los atributos[text(string),buttons(array)]
+    /**
+     * debe tener los atributos[text(string),buttons(array)]
+     * @param {*} elements 
+     */
+    getTemplateButton:function(elements){
         return {
             'attachment':{
                 "type":"template",

@@ -381,10 +381,16 @@ async function sendDetailPrePedido(psid,data_encoded){
     temp_text+=`\nHora de entrega: ${data.horario_envio}`
     temp_text+=`\nTeléfono: ${data.telefono.numero}`
     temp_text+=`\nTotal a pagar: ${data.total}`
-    response = {
-        text: temp_text
-    }
-    callSendAPI(psid,response)
+
+    callSendAPI(psid,{text: temp_text}).then(_ =>{
+        let response = {
+            text: 'Si todo está conforme, selecciona CONFIRMAR PEDIDO ',
+            buttons:[
+                {'type':'postback','title':'CONFIRMAR PEDIDO ✅','payload':`CONFIRMAR_PEDIDO`}
+            ]
+        }
+        callSendAPI(psid,BaseJson.getTemplateButton(response))
+    })
 }
 /**
  * retorna la información publica del usuario que se tiene en facebook (first_name,last_name,etc) en formato json

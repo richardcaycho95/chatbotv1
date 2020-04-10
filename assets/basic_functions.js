@@ -58,10 +58,10 @@ var self = module.exports = {
   },
   getSugerenciaHorariosEnvio: function(){
     let hours_qr = [
-      {content_type:'text',title:'LO MAS ANTES POSIBLE',payload:'HORA_ENVIO--AHORA'},
-      {content_type:'text',title:'12:00 PM',payload:'HORA_ENVIO--12PM'},
-      {content_type:'text',title:'1:00 PM',payload:'HORA_ENVIO--1PM'},
-      {content_type:'text',title:'2:00 PM',payload:'HORA_ENVIO--2PM'}
+      {content_type:'text',title:'LO MAS ANTES POSIBLE',payload:'HORA_ENVIO--LO MAS ANTES POSIBLE'},
+      {content_type:'text',title:'12:00 PM',payload:'HORA_ENVIO--12:00 PM'},
+      {content_type:'text',title:'1:00 PM',payload:'HORA_ENVIO--1:00 PM'},
+      {content_type:'text',title:'2:00 PM',payload:'HORA_ENVIO--2:00 PM'}
     ]
     return hours_qr
   },
