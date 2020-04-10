@@ -83,7 +83,8 @@ var self = module.exports = {
       POST_PEDIDO:'post_pedido',
       PEDIR_TELEFONO:'pedir_telefono',
       TELEFONO_SELECCIONADO:'telefono_seleccionado',
-      PEDIR_HORARIO_ENVIO:'pedir_horario_envio'
+      PEDIR_HORARIO_ENVIO:'pedir_horario_envio',
+      HORARIO_ENVIO_GUARDADO:'horario_envio_guardado'
   },
   NOMBRE_BOT:'HERBIE',
   IMG_INSTRUCCIONES:`https://restaurante-saborperuano.netlify.com/instrucciones.jpg`,

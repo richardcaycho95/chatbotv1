@@ -107,7 +107,6 @@ app.get('/pedidopostback',(req,res)=>{
                 text+=Base.getTextPedidoFromArray(data.complementos.postres,'POSTRES')
 
                 text+=(data.comentario=='')?'':`\nComentario: ${data.comentario}`
-                text+=`\nEnviar a: ${data.ubicacion.referencia}`
                 text+=`\nTotal a pagar: ${data.total}`
 
                 callSendAPI(data.psid,{"text": text}).then(_ =>{
@@ -370,6 +369,19 @@ async function sendSaludo(psid){
  * @param {*} data_encoded data codificada, debe ser la mas actualizada de firebase
  */
 async function sendDetailPrePedido(psid,data_encoded){
+    let data = Base.decodeData(data_encoded)
+    let temp_text=`Te resumimos tu pedido:\n\n`
+    temp_text+=Base.getTextPedidoFromArray(data.pedido.entradas,'ENTRADAS')
+    temp_text+=Base.getTextPedidoFromArray(data.pedido.segundos,'SEGUNDOS')
+    temp_text+=Base.getTextPedidoFromArray(data.complementos.gaseosas,'GASEOSAS')
+    temp_text+=Base.getTextPedidoFromArray(data.complementos.postres,'POSTRES')
+    temp_text+=(data.comentario=='')?'':`\nComentario: ${data.comentario}`
+    temp_text+=`\nEnviar a: ${data.referencia}(${data.referencia})` //change
+    
+    temp_text+=`\nTotal a pagar: ${data.total}`
+    response = {
+        text: temp_text
+    }
     callSendAPI(psid,{text:JSON.stringify(Base.decodeData(data_encoded))})
 }
 /**
@@ -556,6 +568,7 @@ async function saveHorarioEnvio(psid,horario,data_encoded){
     let data_decoded = Base.decodeData(data_encoded)
     return new Promise((resolve,reject)=>{
         data_decoded.horario_envio = horario
+        data_decoded.flujo=Base.FLUJO.HORARIO_ENVIO_GUARDADO
         savePrePedido(psid,Base.encodeData(data_decoded)).then(_ =>{
             resolve(Base.encodeData(data_decoded))
         })
