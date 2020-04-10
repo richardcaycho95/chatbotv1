@@ -370,7 +370,7 @@ async function sendSaludo(psid){
  * @param {*} data_encoded data codificada, debe ser la mas actualizada de firebase
  */
 async function sendDetailPrePedido(psid,data_encoded){
-    callSendAPI(psid,{text:Base.decodeData(data_encoded)})
+    callSendAPI(psid,{text:JSON.stringify(Base.decodeData(data_encoded))})
 }
 /**
  * retorna la información publica del usuario que se tiene en facebook (first_name,last_name,etc) en formato json
