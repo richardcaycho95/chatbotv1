@@ -157,7 +157,7 @@ async function handleQuickReply(sender_psid,message){
     if(response[0]=='HORA_ENVIO'){
         if (data_encoded!='') { //si la data aun no se ha eliminado
             saveHorarioEnvio(sender_psid,payload,data_encoded).then(response => {
-                //sendPedido(sender_psid,response)
+                sendDetailPrePedido(sender_psid,response)
             })
         }
     }
