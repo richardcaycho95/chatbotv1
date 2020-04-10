@@ -241,6 +241,7 @@ async function handlePostback(sender_psid,received_postback){
                 deletePrePedido(sender_psid,true)
             }
             templateDirecciones(sender_psid)
+            break;
         case 'RP_DIR_SELECCIONADA': //cuando el usuario selecciona una dirección mostrada, aca recien se empezará a crear el pre_pedido
             if (pre_pedido!='') { //si hay un pre_pedido, mandar al flujo
                 managePrePedido(sender_psid,pre_pedido)
