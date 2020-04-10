@@ -636,7 +636,7 @@ async function managePrePedido(psid,pre_pedido){
                     templateDirecciones(psid)
                     break;
                 case flujo.DIRECCION_SELECCIONADA:
-                    direccionSeleccionada(sender_psid,pre_pedido)
+                    direccionSeleccionada(psid,pre_pedido)
                     break;
                 case flujo.POST_PEDIDO:
                     //despues que se llena el pedido desde le formulario
