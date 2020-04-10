@@ -169,9 +169,8 @@ async function handleQuickReply(sender_psid,message){
  */
 async function handleMessage(sender_psid,received_message){
     let usuario = await getUsuarioByPsid(sender_psid)
-    if(!usuario.existe){
-        await saveUser(sender_psid,'','')
-    }
+    if(!usuario.existe){ await saveUser(sender_psid,'','')}
+
     if(received_message.quick_reply){ //si el mensaje posee un QR
         handleQuickReply(sender_psid,received_message)
     } else if (received_message.text) { //si no hay QR
@@ -181,13 +180,15 @@ async function handleMessage(sender_psid,received_message){
             sendSaludo(sender_psid).then(_ =>{
                 callSendAPI(sender_psid,getBloqueInicial()) //creando bloque inicial
             })
-        } else{
-            //si el usuario tiene un pre pedido pendiente
-            data = {
-                'text':'Tienes un pedido en proceso... ¿Deseas cancelarlo?',
-                'buttons':[{type:'postback',title:'SI',payload:'CANCELAR_PREPEDIDO'},{type:'postback',title:'NO',payload:'SEGUIR_PREPEDIDO'}]
+        } else{ //si el usuario tiene un pre pedido pendiente
+            let data_decoded = Base.decodeData(data)
+            if(data_decoded.flujo==Base.FLUJO.PEDIR_HORARIO_ENVIO){ //el flujo está pidiendo el horario de envio y el usuario lo ha escrito
+                saveHorarioEnvio(sender_psid,received_message.text,data).then(response =>{
+                    sendDetailPrePedido(sender_psid,response)
+                })
+            } else{
+                managePrePedido(sender_psid,data)
             }
-            callSendAPI(sender_psid,BaseJson.getTemplateButton(data))
         }
     }
 }
@@ -261,7 +262,7 @@ async function handlePostback(sender_psid,received_postback){
         case 'RP_TELEFONO_SELECCIONADO': //cuando se ha seleccionado un telefono, se procede a preguntar el horario de envio 
             //el usuario selecciona un número de las cards que se muestra, cada card tiene codificada la data anterior y el numero respectivo, cuando se selecciona se trae en la segunda parte del payload, y luego se guarda en firebase
             if (pre_pedido!='') {
-                templateTelefonoSeleccionado(sender_psid,response[1])
+                templatePedirHorarioEnvio(sender_psid,response[1])
             } else{
                 managePrePedido(sender_psid,pre_pedido)
             }
@@ -362,6 +363,14 @@ async function sendSaludo(psid){
         })
         resolve()
     })
+}
+/**
+ * envia el detalle del pedido que se está armando
+ * @param {*} psid id del usuario
+ * @param {*} data_encoded data codificada, debe ser la mas actualizada de firebase
+ */
+async function sendDetailPrePedido(psid,data_encoded){
+    callSendAPI(psid,{text:Base.decodeData(data_encoded)})
 }
 /**
  * retorna la información publica del usuario que se tiene en facebook (first_name,last_name,etc) en formato json
@@ -540,8 +549,8 @@ async function savePhoneNumber(psid,number,data_encoded){
 /**
  * guarda horario de envio que elegió el usuario y devuelve la data codificada agregando atributo 'horario_envio'
  * @param {*} psid id del usuario
- * @param {*} horario 
- * @param {*} data_encoded 
+ * @param {*} horario horario que el usuario eligió (mediante QR) o escribió
+ * @param {*} data_encoded este campo debe tener la data extraida desde firebase
  */
 async function saveHorarioEnvio(psid,horario,data_encoded){
     let data_decoded = Base.decodeData(data_encoded)
@@ -560,7 +569,7 @@ function getBloqueInicial(){
                 {'type':'postback','title':'REALIZAR PEDIDO 🛒','payload':'RP_DIRECCIONES'},
                 {'type':'postback','title':'VER MENÚ DEL DIA 🍛','payload':'MENU_DIA'}
             ],
-            'empresa':'Restaurante Sabor Peruano',
+            'empresa':Base.NOMBRE_EMPRESA,
             'descripcion': 'Ahora puedes realizar tus pedidos mediante nuestro asistente virtual 🤖 😉',
             'img_url':'https://img.mesa247.pe/archivos/inversiones-sp-sabores-peruanos-eirl/sabores-peruanos-miraflores-logo.jpg'
         },
@@ -569,7 +578,7 @@ function getBloqueInicial(){
                 {'type':'postback','title':'VER GASEOSAS 🔰','payload':'complementos'},
                 {'type':'postback','title':'VER POSTRES 🍰','payload':'postres'},   
             ],
-            'empresa':'Restaurante Sabor Peruano',
+            'empresa':Base.NOMBRE_EMPRESA,
             'descripcion': 'Tambien puedes pedir un postre o gaseosa o añadirla a tu pedido 😊',
             'img_url':'https://img.mesa247.pe/archivos/inversiones-sp-sabores-peruanos-eirl/sabores-peruanos-miraflores-logo.jpg'
         },
@@ -596,7 +605,6 @@ function getBloqueInicial(){
             "buttons":buttons
         })
     })
-    //elements=JSON.stringify(elements)
     return BaseJson.getGenericBlock(elements)
 }
 /**
@@ -731,15 +739,15 @@ async function templateDirecciones(psid){
  */
 async function templateGetStarted(psid){
     let response = await getProfileFromFacebook(psid)
-    await callSendAPI(psid,{text:`Hola ${response.first_name}, te presentamos a ${Base.NOMBRE_BOT}, nuestro asistente virtual 🤖, que es parte de una nueva experiencia de delivery que el *Restaurante Sabor Peruano* pone a tu disposición 🤗. \n\nEn unos simples pasos podrás realizar tu pedido desde la comodidad de tu hogar o desde donde te encuentres, ${Base.NOMBRE_BOT} te hará unas sencillas preguntas para concretar tu pedido.\n\nA continuación te enseñamos como funciona ${Base.NOMBRE_BOT} 🤖`})
+    await callSendAPI(psid,{text:`Hola ${response.first_name}, te presentamos a ${Base.NOMBRE_BOT}, nuestro asistente virtual 🤖, que es parte de una nueva experiencia de delivery que el *${Base.NOMBRE_EMPRESA}* pone a tu disposición 🤗. \n\nEn unos simples pasos podrás realizar tu pedido desde la comodidad de tu hogar o desde donde te encuentres, ${Base.NOMBRE_BOT} te hará unas sencillas preguntas para concretar tu pedido.\n\nA continuación te enseñamos como funciona ${Base.NOMBRE_BOT} 🤖`})
 
     typing(psid,4000).then(_ =>{
         callSendAPI(psid,BaseJson.getImage(Base.IMG_INSTRUCCIONES))
     })
 }
-async function templateTelefonoSeleccionado(psid,data_encoded){
+async function templatePedirHorarioEnvio(psid,data_encoded){
     let data_decoded = Base.decodeData(data_encoded)
-    data_decoded.flujo = Base.FLUJO.TELEFONO_SELECCIONADO
+    data_decoded.flujo = Base.FLUJO.PEDIR_HORARIO_ENVIO
     savePrePedido(psid,Base.encodeData(data_decoded))
 
     let data_qr = {

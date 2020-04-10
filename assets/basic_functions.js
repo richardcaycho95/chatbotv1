@@ -82,12 +82,14 @@ var self = module.exports = {
       DIRECCION_SELECCIONADA:'direccion_seleccionada',
       POST_PEDIDO:'post_pedido',
       PEDIR_TELEFONO:'pedir_telefono',
-      TELEFONO_SELECCIONADO:'telefono_seleccionado'
+      TELEFONO_SELECCIONADO:'telefono_seleccionado',
+      PEDIR_HORARIO_ENVIO:'pedir_horario_envio'
   },
-  NOMBRE_BOT:'*HERBIE*',
+  NOMBRE_BOT:'HERBIE',
   IMG_INSTRUCCIONES:`https://restaurante-saborperuano.netlify.com/instrucciones.jpg`,
   REPARTO:{
     HORA_INICIO:'11:00 AM',
     HORA_FIN:'3:00 PM'
-  }
+  },
+  NOMBRE_EMPRESA:'Restaurante Sabor Peruano'
 }
