@@ -155,7 +155,7 @@ async function handleQuickReply(sender_psid,message){
     //cuando el usuario elige una sugerencia de horario de envio
     if(response[0]=='HORA_ENVIO'){
         if (data_encoded!='') { //si la data aun no se ha eliminado
-            saveHorarioEnvio(sender_psid,payload,data_encoded).then(response => {
+            saveHorarioEnvio(sender_psid,response[1],data_encoded).then(response => {
                 sendDetailPrePedido(sender_psid,response)
             })
         }
@@ -370,14 +370,15 @@ async function sendSaludo(psid){
  */
 async function sendDetailPrePedido(psid,data_encoded){
     let data = Base.decodeData(data_encoded)
-    let temp_text=`Te resumimos tu pedido:\n\n`
+    let temp_text=`Te resumimos tu pedido:\n`
     temp_text+=Base.getTextPedidoFromArray(data.pedido.entradas,'ENTRADAS')
     temp_text+=Base.getTextPedidoFromArray(data.pedido.segundos,'SEGUNDOS')
     temp_text+=Base.getTextPedidoFromArray(data.complementos.gaseosas,'GASEOSAS')
     temp_text+=Base.getTextPedidoFromArray(data.complementos.postres,'POSTRES')
     temp_text+=(data.comentario=='')?'':`\nComentario: ${data.comentario}`
-    temp_text+=`\nEnviar a: ${data.referencia}(${data.referencia})` //change
-    
+    temp_text+=`\nEnviar a: ${data.ubicacion.referencia}(${data.ubicacion.referencia})` //change
+    temp_text+=`\nHora de entrega: ${data.horario_envio}`
+    temp_text+=`\nTeléfono: ${data.telefono.numero}`
     temp_text+=`\nTotal a pagar: ${data.total}`
     response = {
         text: temp_text
@@ -721,7 +722,7 @@ async function templateDirecciones(psid){
     let add_location = getAddLocationCard(psid) //card para agregar dirección del usuario
     let elements=[] // elementos del bloque
     if(usuario_selected.existe){ //si el usuario esta registrado en firebase(por su psid)
-        let snapshot = await db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).once('value')
+        let snapshot = await db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).orderByKey().once('value')
         let ubicaciones = Base.fillInFirebase(snapshot)
         ubicaciones.map(ubicacion =>{
             ubicacion.flujo = Base.FLUJO.PEDIR_DI1RECCION
