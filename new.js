@@ -911,7 +911,7 @@ async function confirmMultiplePedido(psid){
     let usuario = await getUsuarioByPsid(psid)
     if(usuario.existe){
         deletePrePedido(usuario.key).then(_ =>{
-            db.ref(`usuarios/${usuario.key}`).set({
+            db.ref(`usuarios/${usuario.key}`).update({
                 multiple_pedido:true
             })
         })
