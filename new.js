@@ -429,7 +429,7 @@ async function sendDetailPrePedido(psid,data_encoded){
 async function sendAskMultiplePedido(psid){
     let id_pedido = '123'
     let data = {
-        text:`El pedido N° ${id_pedido} está en proceso...\n¿Deseas agregar otro pedido?`,
+        text:`La orden N° ${id_pedido} está en proceso...\n¿Deseas agregar otro pedido?`,
         buttons:[
             BaseJson.getPostbackButton('SI','CONFIRM_MULTIPLE_PEDIDO'),
             BaseJson.getPostbackButton('NO','DENEGAR_MULTIPLE_PEDIDO')
@@ -775,7 +775,8 @@ async function deletePrePedido(key,is_psid=false){
     }
     db.ref(`usuarios/${my_key}`).update({
         'created_at':'',
-        'pre_pedido':''
+        'pre_pedido':'',
+        'multiple_pedido':false
     })
 }
 /**
