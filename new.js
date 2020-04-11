@@ -444,7 +444,6 @@ async function telefonoQR(psid){
 async function pedirTelefono(psid,data_encoded){
     let data_decoded = Base.decodeData(data_encoded)
     let usuario_selected = await getUsuarioByPsid(psid)
-    let add_phone = getAddPhoneCard(data_encoded)
     let elements = []
 
     data_decoded.flujo = Base.FLUJO.PEDIR_TELEFONO
@@ -460,20 +459,19 @@ async function pedirTelefono(psid,data_encoded){
                 //el payload viene arrastrando la data del pedido, ubicacion y ahora se añade el telefono seleccionado
                 elements.push({
                     "title":telefono.numero,
-                    "image_url":``,
                     "subtitle":"",
                     "buttons":[
                         {'type':'postback','title':'SELECCIONAR','payload':`RP_TELEFONO_SELECCIONADO--${data_encoded}`},
                     ]
                 })
             })
-            elements.push(add_phone)
+            elements.push(getAddPhoneCard(data_encoded))
             text={'text':'Escoge o agrega un número de celular 📲:'}
             callSendAPI(psid,text).then( _ =>{
                 callSendAPI(psid,BaseJson.getGenericBlock(elements))
             })
         } else{ //no tiene telefonos registrados
-            elements.push(add_phone)
+            elements.push(getAddPhoneCard(data_encoded,true))
             text={'text':'📌 Agrega un número de celular para avisarte sobre el estado de tu pedido:'}
             callSendAPI(psid,text).then( response =>{
                 callSendAPI(psid,BaseJson.getGenericBlock(elements)).then( _ =>{})
@@ -827,11 +825,15 @@ function getAddLocationCard(psid){
         ]
     }
 }
-function getAddPhoneCard(data_encoded){
+/**
+ * devuelve formato json de un card que agrega un numero e implementarlo en un template
+ * @param {*} data_encoded data codificada que se concatenará en el payload
+ * @param {*} is_first_time si es verdadero, se muestra un detalle para guiar al usuario
+ */
+function getAddPhoneCard(data_encoded,is_first_time=false){
     return {
         "title":'Agrega un número de celular 📲',
-        "image_url":`${Base.WEBHOOK_URL}/add_location.jpg`,
-        "subtitle":"",
+        "subtitle":(is_first_time)?'La primera vez que pidas tendrás que agregar un número de celular para podernos contactarte, en los proximos pedidos ya lo tendremos listo para seleccionarlo':'',
         "buttons":[
             {'type':'postback','title':'AGREGAR','payload':`RP_AGREGAR_TELEFONO--${data_encoded}`},
         ]

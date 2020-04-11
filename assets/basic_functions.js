@@ -1,4 +1,8 @@
 var self = module.exports = {
+  /**
+   * devuelve la información que tiene snapshot en formato json y se agrega el atributo key
+   * @param {*} snapshot objeto que genera firebase el cual se tiene la data
+   */
   fillInFirebase: function(snapshot){
     console.log(`snapshot: ${JSON.stringify(snapshot.val())}`)
     let temp_return=[]
@@ -7,20 +11,14 @@ var self = module.exports = {
       item.key=element.key
       temp_return.push(item)
     })
-    console.log(JSON.stringify(temp_return))
-    //return Object.values(snapshot.val())
-    // let temp=snapshot.val()
-    // let temp_return=[]
-    // for (const prop in temp) {
-    //   if (temp.hasOwnProperty(prop)) {
-    //     temp_return.push(temp[prop])
-    //   }
-    // }
-    // //temp_return['key']=snapshot.key
-    // console.log(`snapshot en array: ${JSON.stringify(temp_return)}`)
     return temp_return
   },
-  getTextPedidoFromArray:function(data,title=''){ //el texto ya tiene un formato definido
+  /**
+   * el texto ya tiene un formato definido
+   * @param {*} data información que se trae desde pedidopostback
+   * @param {*} title titulo del mensaje
+   */
+  getTextPedidoFromArray:function(data,title=''){
       let temp_text =''
       if(data.length > 0) { temp_text+=`\n${title}:\n` }
       data.map( element =>{
@@ -28,10 +26,18 @@ var self = module.exports = {
       })
       return temp_text
   },
+  /**
+   * decodificada la data en base64 y la devuelve en formato json
+   * @param {String} encoded data codificada
+   */
   decodeData:function(encoded){
       let buff = Buffer.from(encoded,'base64')
       return JSON.parse(buff.toString('ascii'))
   },
+  /**
+   * codificada la data a base64 y devuelve una cadena
+   * @param {JSON} decoded data codificada
+   */
   encodeData:function(decoded){
       let buff = Buffer.from(JSON.stringify(decoded))
       return buff.toString('base64')
@@ -57,12 +63,12 @@ var self = module.exports = {
     }
   },
   getSugerenciaHorariosEnvio: function(){
-    let hours_qr = [
-      {content_type:'text',title:'LO MAS ANTES POSIBLE',payload:'HORA_ENVIO--LO MAS ANTES POSIBLE'},
-      {content_type:'text',title:'12:00 PM',payload:'HORA_ENVIO--12:00 PM'},
-      {content_type:'text',title:'1:00 PM',payload:'HORA_ENVIO--1:00 PM'},
-      {content_type:'text',title:'2:00 PM',payload:'HORA_ENVIO--2:00 PM'}
-    ]
+    let generic_payload = 'HORA_ENVIO'
+    let data = ['LO MAS ANTES POSIBLE','12:00 PM','1:00 PM','2:00 PM']
+    let hours_qr = []
+    data.forEach(value =>{
+      hours_qr.push({content_type:'text', title:value, payload:`${generic_payload}--${value}`})
+    })
     return hours_qr
   },
   GMAP_API_KEY: 'AIzaSyDxIn9qXbWD1lvSzHCiphSNw7_jiPK6obw',
