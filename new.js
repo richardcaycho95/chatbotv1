@@ -136,6 +136,10 @@ app.get('/add_location_postback',(req,res)=>{
         console.log('psid no definido en add_location_postback')
     }
 });
+app.post('/save_pedido',(req,res)=>{
+    let body = JSON.parse(req.query)
+    res.json({id_pedido:'123'})
+})
 /**************************************************************/
 /********FUNCIONES BASICAS PARA COMUNICAR CON EL BOT***********/
 /**************************************************************/
@@ -282,7 +286,9 @@ async function handlePostback(sender_psid,received_postback){
             break;
         case 'CONFIRMAR_PEDIDO':
             if(pre_pedido!=''){ //si hay pre_pedido
-                savePedido(sender_psid,pre_pedido)
+                savePedido(sender_psid,pre_pedido).then(id_pedido =>{
+                    callSendAPI(sender_psid,{text:`Tu orden N° ${id_pedido} ha sido generada 😎👍.\nMuchas gracias por utilizar el servicio 😊.`})
+                })
             } else{
                 managePrePedido(sender_psid,pre_pedido)
             }
@@ -621,6 +627,11 @@ async function saveHorarioEnvio(psid,horario,data_encoded){
         })
     })
 }
+/**
+ * guarda el pedido confirmado por el usuario y retorna el id del pedido generado en el backend
+ * @param {*} psid id del usuario
+ * @param {*} data_encoded data codificada, debe ser la mas actualizada desde firebase
+ */
 async function savePedido(psid,data_encoded){
     let data_decoded = Base.decodeData(data_encoded)
     data_decoded.flujo=Base.FLUJO.PEDIDO_CONFIRMADO
@@ -632,9 +643,9 @@ async function savePedido(psid,data_encoded){
     },(err,res,body)=>{
         if (!err) {
             deletePrePedido(psid,true).then(_ =>{
-                db.ref('')
+                db.ref(`usuarios/${data_decoded.usuario_key}/pedidos`).push({id:body.id_pedido})
+                resolve(body.id_pedido)
             })
-            resolve(response)
         } else{
             console.error('No se puede responder')
             reject(err)
