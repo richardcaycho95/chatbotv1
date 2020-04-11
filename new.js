@@ -137,7 +137,7 @@ app.get('/add_location_postback',(req,res)=>{
     }
 });
 app.post('/save_pedido',(req,res)=>{
-    let body = JSON.parse(req.query)
+    //let body = JSON.parse(req.query)
     res.json({id_pedido:'123'})
 })
 /**************************************************************/
