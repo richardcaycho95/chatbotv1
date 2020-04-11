@@ -635,21 +635,23 @@ async function saveHorarioEnvio(psid,horario,data_encoded){
 async function savePedido(psid,data_encoded){
     let data_decoded = Base.decodeData(data_encoded)
     data_decoded.flujo=Base.FLUJO.PEDIDO_CONFIRMADO
-    request({
-        'uri': `${Base.WEBHOOK_URL}/save_pedido`,
-        'qs':{ 'access_token': Base.WEB_ACCESS_TOKEN },
-        'method': 'POST',
-        'json': data_decoded
-    },(err,res,body)=>{
-        if (!err) {
-            deletePrePedido(psid,true).then(_ =>{
-                db.ref(`usuarios/${data_decoded.usuario_key}/pedidos`).push({id:body.id_pedido})
-                resolve(body.id_pedido)
-            })
-        } else{
-            console.error('No se puede responder')
-            reject(err)
-        }
+    return new Promise((resolve,reject)=>{
+        request({
+            'uri': `${Base.WEBHOOK_URL}/save_pedido`,
+            'qs':{ 'access_token': Base.WEB_ACCESS_TOKEN },
+            'method': 'POST',
+            'json': data_decoded
+        },(err,res,body)=>{
+            if (!err) {
+                deletePrePedido(psid,true).then(_ =>{
+                    db.ref(`usuarios/${data_decoded.usuario_key}/pedidos`).push({id:body.id_pedido})
+                    resolve(body.id_pedido)
+                })
+            } else{
+                console.error('No se puede responder')
+                reject(err)
+            }
+        })
     })
 }
 function getBloqueInicial(){
