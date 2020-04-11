@@ -146,21 +146,30 @@ app.post('/save_pedido',(req,res)=>{
 //handle quick replies
 async function handleQuickReply(sender_psid,message){
     const payload = message.quick_reply.payload
-    let data_encoded = await getPrePedidoByPsid(sender_psid)
+    let pre_pedido = await getPrePedidoByPsid(sender_psid)
     let response = payload.split('--')
     let phone = {initial: payload.substr(0,3), size: payload.length }
 
+    if(pre_pedido.pedido_asignado){ //si hay pedidos confirmados
+        if(pre_pedido.multiple_pedido==true){ //si se aceptó tener multiples pedidos
+            pre_pedido = pre_pedido.pre_pedido
+        } else{
+            sendAskMultiplePedido(sender_psid)
+            return false
+        }
+    }
+
     if (phone.initial =='+51' && phone.size == 12) { //si el texto tiene indicios de ser el celular
-        if (data_encoded!='') { //si la data aun no se ha eliminado
-            savePhoneNumber(sender_psid,payload,data_encoded).then(response => {
+        if (pre_pedido!='') { //si la data aun no se ha eliminado
+            savePhoneNumber(sender_psid,payload,pre_pedido).then(response => {
                 pedirTelefono(sender_psid,response)
             })
         }
     }
     //cuando el usuario elige una sugerencia de horario de envio
     if(response[0]=='HORA_ENVIO'){
-        if (data_encoded!='') { //si la data aun no se ha eliminado
-            saveHorarioEnvio(sender_psid,response[1],data_encoded).then(response => {
+        if (pre_pedido!='') { //si la data aun no se ha eliminado
+            saveHorarioEnvio(sender_psid,response[1],pre_pedido).then(response => {
                 sendDetailPrePedido(sender_psid,response)
             })
         }
