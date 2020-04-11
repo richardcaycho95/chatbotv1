@@ -96,7 +96,8 @@ app.get('/pedidopostback',(req,res)=>{
                     longitud: ubicacion_data.longitud
                 },
                 flujo:body.flujo,
-                created_at:Base.getDate()
+                created_at:Base.getDate(),
+                usuario_key:body.usuario_key
             }
 
             typing(data.psid,5000).then( __ =>{
@@ -198,7 +199,19 @@ async function handlePostback(sender_psid,received_postback){
     let response = payload.split('--')
     let temp_data = (response.length>1)?response[1]:''
 
+    if(response[0]=='CONFIRM_MULTIPLE_PEDIDO'){ //si el usuario confirma que desea pedir nuevamente
+        confirmMultiplePedido(sender_psid)
+    }
     let pre_pedido = await getPrePedidoByPsid(sender_psid)
+
+    if(pre_pedido.pedido_asignado){ //si hay pedidos confirmados
+        if(pre_pedido.multiple_pedido){ //si se aceptó tener multiples pedidos
+            pre_pedido = pre_pedido.pre_pedido
+        } else{
+            sendAskMultiplePedido(sender_psid)
+            return false
+        }
+    }
 
     console.log(`payload postback: ${payload}`)
     //parametros del payload
@@ -259,10 +272,17 @@ async function handlePostback(sender_psid,received_postback){
         case 'RP_AGREGAR_TELEFONO':
             telefonoQR(sender_psid,temp_data)
             break;
-        case 'RP_TELEFONO_SELECCIONADO': //cuando se ha seleccionado un telefono, se procede a preguntar el horario de envio 
+        case 'RP_TELEFONO_SELECCIONADO': //cuando se ha seleccionado un telefono, se procede a pedir el horario de envio 
             //el usuario selecciona un número de las cards que se muestra, cada card tiene codificada la data anterior y el numero respectivo, cuando se selecciona se trae en la segunda parte del payload, y luego se guarda en firebase
             if (pre_pedido!='') {
                 templatePedirHorarioEnvio(sender_psid,response[1])
+            } else{
+                managePrePedido(sender_psid,pre_pedido)
+            }
+            break;
+        case 'CONFIRMAR_PEDIDO':
+            if(pre_pedido!=''){ //si hay pre_pedido
+                savePedido(sender_psid,pre_pedido)
             } else{
                 managePrePedido(sender_psid,pre_pedido)
             }
@@ -330,7 +350,7 @@ async function typing(psid,time){
         "recipient":{ "id":psid },
         "sender_action":"typing_on"
     }
-    await request({
+    request({
         'uri':`https://graph.facebook.com/v2.6/me/messages`,
         'qs':{ 'access_token': Base.PAGE_ACCESS_TOKEN },
         'method': 'POST',
@@ -377,20 +397,31 @@ async function sendDetailPrePedido(psid,data_encoded){
     temp_text+=Base.getTextPedidoFromArray(data.complementos.gaseosas,'GASEOSAS')
     temp_text+=Base.getTextPedidoFromArray(data.complementos.postres,'POSTRES')
     temp_text+=(data.comentario=='')?'':`\nComentario: ${data.comentario}`
-    temp_text+=`\nEnviar a: ${data.ubicacion.referencia}(${data.ubicacion.referencia})` //change
+    temp_text+=`\nEnviar a: ${data.ubicacion.referencia} (${data.ubicacion.referencia})` //change
     temp_text+=`\nHora de entrega: ${data.horario_envio}`
     temp_text+=`\nTeléfono: ${data.telefono.numero}`
     temp_text+=`\nTotal a pagar: ${data.total}`
 
     callSendAPI(psid,{text: temp_text}).then(_ =>{
         let response = {
-            text: 'Si todo está conforme, selecciona CONFIRMAR PEDIDO ',
+            text: 'Si todo está conforme, selecciona CONFIRMAR PEDIDO ✅',
             buttons:[
-                {'type':'postback','title':'CONFIRMAR PEDIDO ✅','payload':`CONFIRMAR_PEDIDO`}
+                BaseJson.getPostbackButton('CONFIRMAR PEDIDO ✅','CONFIRMAR_PEDIDO')
             ]
         }
         callSendAPI(psid,BaseJson.getTemplateButton(response))
     })
+}
+async function sendAskMultiplePedido(psid){
+    let id_pedido = '123'
+    let data = {
+        text:`El pedido N° ${id_pedido} está en proceso...\n¿Deseas agregar otro pedido?`,
+        buttons:[
+            BaseJson.getPostbackButton('SI','CONFIRM_MULTIPLE_PEDIDO'),
+            BaseJson.getPostbackButton('NO','DENEGAR_MULTIPLE_PEDIDO')
+        ]
+    }
+    callSendAPI(psid,BaseJson.getTemplateButton(data))
 }
 /**
  * retorna la información publica del usuario que se tiene en facebook (first_name,last_name,etc) en formato json
@@ -422,8 +453,8 @@ async function templateAfterPedido(psid,data_decoded){
         let data={
             'text':'Si tu pedido está conforme, presiona CONTINUAR ✅, sino presiona MODIFICAR PEDIDO ✏',
             'buttons':[
-                {'type':'postback','title':'CONTINUAR ✅','payload':`RP_PEDIR_TELEFONO`},
-                {'type':'postback','title':'MODIFICAR PEDIDO ✏','payload':`MODIFICAR_PEDIDO`}
+                BaseJson.getPostbackButton('CONTINUAR ✅','RP_PEDIR_TELEFONO'),
+                BaseJson.getPostbackButton('MODIFICAR PEDIDO ✏','MODIFICAR_PEDIDO')
             ]
         }
         callSendAPI(psid,BaseJson.getTemplateButton(data))
@@ -461,7 +492,7 @@ async function pedirTelefono(psid,data_encoded){
                     "title":telefono.numero,
                     "subtitle":"",
                     "buttons":[
-                        {'type':'postback','title':'SELECCIONAR','payload':`RP_TELEFONO_SELECCIONADO--${data_encoded}`},
+                        BaseJson.getPostbackButton('SELECCIONAR',`RP_TELEFONO_SELECCIONADO--${data_encoded}`)
                     ]
                 })
             })
@@ -495,6 +526,8 @@ async function getUsuarioByPsid(psid){
             usuario_selected.key = usuario.key
             usuario_selected.pre_pedido = usuario.pre_pedido
             usuario_selected.created_at = usuario.created_at
+            usuario_selected.pedidos = usuario.pedidos
+            usuario_selected.multiple_pedido = usuario.multiple_pedido
             return false //termina el bucle
         }
     })
@@ -519,13 +552,21 @@ async function saveLocation(body){
         resolve({'text':'Genial! Haz agregado correctamente tu ubicación 😎'})
     })
 }
+/**
+ * guarda un objeto usuario en firebase
+ * @param {*} psid id del usuario
+ * @param {*} atributo atributo que se asignará la data
+ * @param {*} data data que se asignará segun el atributo
+ */
 async function saveUser(psid,atributo,data){
     let new_usuario={
         psid: psid,
         telefonos:'',
         ubicaciones: '',
         created_at:'',
-        pre_pedido: ''
+        pre_pedido: '',
+        pedidos:'',
+        multiple_pedido: false
     }
     if(psid!=''){
         if (atributo=='ubicaciones') {
@@ -545,7 +586,7 @@ async function saveUser(psid,atributo,data){
     }
 }
 /**
- * guarda el numero de celular del usuario y devuelve la data codificada agregando atributo 'celular'
+ * guarda el numero de celular del usuario y devuelve la data codificada agregando atributo 'telefono'
  * @param {*} psid id del usuario
  * @param {*} number payload, numero del usuario mediante QR
  * @param {*} data_encoded data codificada que se trae desde firebase
@@ -580,13 +621,33 @@ async function saveHorarioEnvio(psid,horario,data_encoded){
         })
     })
 }
+async function savePedido(psid,data_encoded){
+    let data_decoded = Base.decodeData(data_encoded)
+    data_decoded.flujo=Base.FLUJO.PEDIDO_CONFIRMADO
+    request({
+        'uri': `${Base.WEBHOOK_URL}/save_pedido`,
+        'qs':{ 'access_token': Base.WEB_ACCESS_TOKEN },
+        'method': 'POST',
+        'json': data_decoded
+    },(err,res,body)=>{
+        if (!err) {
+            deletePrePedido(psid,true).then(_ =>{
+                db.ref('')
+            })
+            resolve(response)
+        } else{
+            console.error('No se puede responder')
+            reject(err)
+        }
+    })
+}
 function getBloqueInicial(){
     //data:es un bloque,un mensaje y contiene elementos(cards)
     let data=[
         {
             'buttons':[
-                {'type':'postback','title':'REALIZAR PEDIDO 🛒','payload':'RP_DIRECCIONES'},
-                {'type':'postback','title':'VER MENÚ DEL DIA 🍛','payload':'MENU_DIA'}
+                BaseJson.getPostbackButton('REALIZAR PEDIDO 🛒','RP_DIRECCIONES'),
+                BaseJson.getPostbackButton('VER MENÚ DEL DIA 🍛','MENU_DIA')
             ],
             'empresa':Base.NOMBRE_EMPRESA,
             'descripcion': 'Ahora puedes realizar tus pedidos mediante nuestro asistente virtual 🤖 😉',
@@ -594,8 +655,8 @@ function getBloqueInicial(){
         },
         {
             'buttons':[
-                {'type':'postback','title':'VER GASEOSAS 🔰','payload':'complementos'},
-                {'type':'postback','title':'VER POSTRES 🍰','payload':'postres'},   
+                BaseJson.getPostbackButton('VER GASEOSAS 🔰','VER_GASEOSAS'),
+                BaseJson.getPostbackButton('VER POSTRES 🍰','VER_POSTRES')
             ],
             'empresa':Base.NOMBRE_EMPRESA,
             'descripcion': 'Tambien puedes pedir un postre o gaseosa o añadirla a tu pedido 😊',
@@ -603,9 +664,9 @@ function getBloqueInicial(){
         },
         {
             'buttons':[
-                {'type':'postback','title':'UBICANOS 🗺','payload':'ubicanos'},
-                {'type':'postback','title':'LLAMANOS 📞','payload':'llamanos'},
-                {'type':'postback','title':'NUESTRA COBERTURA 🛵','payload':'llamanos'},
+                BaseJson.getPostbackButton('UBICANOS 🗺','UBICANOS'),
+                BaseJson.getPostbackButton('LLAMANOS 📞','LLAMANOS'),
+                BaseJson.getPostbackButton('NUESTRA COBERTURA 🛵','NUESTRA_COBERTURA')
             ],
             'empresa':'Contactanos',
             'descripcion': 'Estamos atentos 😝',
@@ -697,25 +758,39 @@ async function deletePrePedido(key,is_psid=false){
     })
 }
 /**
- * devuelve la data codificada (si hubiera) del usuario identificado por psid, sino devuelve string vacio
+ * devuelve la data codificada (si hubiera) del usuario identificado por psid, sino devuelve string vacio... Si hay pedidos confirmados devuelve un objeto {pedido_asignado:true,multiple_pedido:Boolean}
  * @param {number} psid  id del usuario
  */
 async function getPrePedidoByPsid(psid){
     let usuario = await getUsuarioByPsid(psid)
 
-    if (usuario.existe && usuario.pre_pedido!='') { //si el usuario existe y tiene pre_pedido
-        let diff = Math.abs(new Date(Base.getDate())-new Date(usuario.created_at)) //actual - create_at = diff in ms
+    if(usuario.pedidos==''){ //si no hay pedidos confirmados
+        if (usuario.existe && usuario.pre_pedido!='') { //si el usuario existe y tiene pre_pedido
+            let diff = Math.abs(new Date(Base.getDate())-new Date(usuario.created_at)) //actual - create_at = diff in ms
+            let minutes = Math.floor((diff/1000)/60)
+            console.log(`dif: ${diff} minutos: ${minutes}`)
+    
+            if (minutes>=30) { //si el pre_pedido pasa los 30 minutos, se elimina
+                await deletePrePedido(usuario.key)
+                return '' //no hay data del pre_pedido
+            } else{
+                return usuario.pre_pedido
+            }
+        } else{  //devuelve vacio
+            return usuario.pre_pedido
+        }
+    } else{ //si ya se tiene pedidos confirmados
+        let temp_pre_pedido
+        let diff = Math.abs(new Date(Base.getDate())-new Date(usuario.created_at))
         let minutes = Math.floor((diff/1000)/60)
-        console.log(`dif: ${diff} minutos: ${minutes}`)
 
         if (minutes>=30) { //si el pre_pedido pasa los 30 minutos, se elimina
             await deletePrePedido(usuario.key)
-            return '' //no hay data del pre_pedido
+            temp_pre_pedido = ''
         } else{
-            return usuario.pre_pedido
+            temp_pre_pedido = usuario.pre_pedido
         }
-    } else{  //devuelve vacio
-        return usuario.pre_pedido
+        return {pedido_asignado:true,multiple_pedido:usuario.multiple_pedido,pre_pedido:temp_pre_pedido}
     }
 }
 /**
@@ -730,7 +805,8 @@ async function templateDirecciones(psid){
         let snapshot = await db.ref(`usuarios/${usuario_selected.key}/ubicaciones`).orderByKey().once('value')
         let ubicaciones = Base.fillInFirebase(snapshot)
         ubicaciones.map(ubicacion =>{
-            ubicacion.flujo = Base.FLUJO.PEDIR_DI1RECCION
+            ubicacion.flujo = Base.FLUJO.PEDIR_DIRECCION
+            ubicacion.usuario_key = usuario_selected.key
             ubicacion.created_at = Base.getDate()
             let ubicacion_encoded = Base.encodeData(ubicacion) //aca inicia la codificacion de datos del pedido
             elements.push({
@@ -738,7 +814,7 @@ async function templateDirecciones(psid){
                 "subtitle":ubicacion.referencia,
                 "image_url":`https://maps.googleapis.com/maps/api/staticmap?center=${ubicacion.latitud},${ubicacion.longitud}&zoom=18&size=570x300&maptype=roadmap&markers=color:red%7Clabel:AQUI%7C${ubicacion.latitud},${ubicacion.longitud}&key=${Base.GMAP_API_KEY}`,
                 "buttons":[
-                    {'type':'postback','title':'SELECCIONAR','payload':`RP_DIR_SELECCIONADA--${ubicacion_encoded}`}
+                    BaseJson.getPostbackButton('SELECCIONAR',`RP_DIR_SELECCIONADA--${ubicacion_encoded}`)
                 ]
             })
         })
@@ -774,7 +850,7 @@ async function templatePedirHorarioEnvio(psid,data_encoded){
 
     let data_qr = {
         text:`Empezamos a repartir desde las ${Base.REPARTO.HORA_INICIO} hasta las ${Base.REPARTO.HORA_FIN}\nEscribe a que hora deseas que te enviemos tu pedido:\n(Acá te dejamos algunas sugerencias 👇)`,
-        'quick_replies':Base.getSugerenciaHorariosEnvio()
+        quick_replies:Base.getSugerenciaHorariosEnvio()
     }
     callSendAPI(psid,data_qr)
 }
@@ -797,7 +873,7 @@ async function direccionSeleccionada(psid,ubicacion_encoded){
                 'title':'VER MENÚ 🍛','webview_height_ratio':'tall',
                 'messenger_extensions':'true','fallback_url':url
             },
-            {'type':'postback','title':'CAMBIAR DIRECCIÓN 🔄','payload':'RP_CAMBIAR_DIRECCION'}
+            BaseJson.getPostbackButton('CAMBIAR DIRECCIÓN 🔄','RP_CAMBIAR_DIRECCION')
         ]
     }
 
@@ -805,6 +881,20 @@ async function direccionSeleccionada(psid,ubicacion_encoded){
     savePrePedido(psid,data_encoded).then(_ =>{
         callSendAPI(psid,BaseJson.getTemplateButton(data))
     })
+}
+/**
+ * confirma que el usuario desea realizar multiples pedidos, setea 'multiple_pedido'=true
+ * @param {*} psid id del usuario
+ */
+async function confirmMultiplePedido(psid){
+    let usuario = await getUsuarioByPsid(psid)
+    if(usuario.existe){
+        deletePrePedido(usuario.key).then(_ =>{
+            db.ref(`usuarios/${usuario.key}`).set({
+                multiple_pedido:true
+            })
+        })
+    }
 }
 /********************************************
  * FUNCIONES BASES PARA LA CREACION DE FORMATOS JSON
@@ -835,7 +925,7 @@ function getAddPhoneCard(data_encoded,is_first_time=false){
         "title":'Agrega un número de celular 📲',
         "subtitle":(is_first_time)?'La primera vez que pidas tendrás que agregar un número de celular para podernos contactarte, en los proximos pedidos ya lo tendremos listo para seleccionarlo':'',
         "buttons":[
-            {'type':'postback','title':'AGREGAR','payload':`RP_AGREGAR_TELEFONO--${data_encoded}`},
+            BaseJson.getPostbackButton('AGREGAR',`RP_AGREGAR_TELEFONO--${data_encoded}`)
         ]
     }
 }

@@ -82,6 +82,7 @@ var self = module.exports = {
   //variables constantes de ambiente
   SUSBCRIBE_MODE:'subscribe',
   PAGE_ACCESS_TOKEN:process.env.PAGE_ACCESS_TOKEN,
+  WEB_ACCESS_TOKEN:process.env.WEB_ACCESS_TOKEN,//'abc123456'
   VERIFICATION_TOKEN:process.env.VERIFICATION_TOKEN,
   FLUJO:{
       PEDIR_DIRECCION:'templateDirecciones',
@@ -90,7 +91,8 @@ var self = module.exports = {
       PEDIR_TELEFONO:'pedir_telefono',
       TELEFONO_SELECCIONADO:'telefono_seleccionado',
       PEDIR_HORARIO_ENVIO:'pedir_horario_envio',
-      HORARIO_ENVIO_GUARDADO:'horario_envio_guardado'
+      HORARIO_ENVIO_GUARDADO:'horario_envio_guardado',
+      PEDIDO_CONFIRMADO:'pedido_confirmado'
   },
   NOMBRE_BOT:'HERBIE',
   IMG_INSTRUCCIONES:`https://restaurante-saborperuano.netlify.com/instrucciones.jpg`,
@@ -98,5 +100,6 @@ var self = module.exports = {
     HORA_INICIO:'11:00 AM',
     HORA_FIN:'3:00 PM'
   },
+  PEDIDO_ASIGNADO:'pedido_asignado',
   NOMBRE_EMPRESA:'Restaurante Sabor Peruano'
 }

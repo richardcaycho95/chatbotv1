@@ -65,5 +65,8 @@ var self = module.exports = {
                 }
             }
         }
+    },
+    getPostbackButton:function(title,payload){
+        return {'type':'postback','title':title,'payload':payload}
     }
 }
