@@ -181,7 +181,7 @@ async function handleMessage(sender_psid,received_message){
         let data = await getPrePedidoByPsid(sender_psid)
         console.log(data)
         if(data.pedido_asignado){ //si hay pedidos confirmados
-            if(data.multiple_pedido){ //si se aceptó tener multiples pedidos
+            if(data.multiple_pedido==true){ //si se aceptó tener multiples pedidos
                 data = data.pre_pedido
             } else{
                 sendAskMultiplePedido(sender_psid)
@@ -217,7 +217,7 @@ async function handlePostback(sender_psid,received_postback){
     let pre_pedido = await getPrePedidoByPsid(sender_psid)
 
     if(pre_pedido.pedido_asignado){ //si hay pedidos confirmados
-        if(pre_pedido.multiple_pedido){ //si se aceptó tener multiples pedidos
+        if(pre_pedido.multiple_pedido==true){ //si se aceptó tener multiples pedidos
             pre_pedido = pre_pedido.pre_pedido
         } else{
             sendAskMultiplePedido(sender_psid)
