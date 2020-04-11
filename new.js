@@ -97,7 +97,7 @@ app.get('/pedidopostback',(req,res)=>{
                 },
                 flujo:body.flujo,
                 created_at:Base.getDate(),
-                usuario_key:body.usuario_key
+                usuario_key:ubicacion_data.usuario_key
             }
 
             typing(data.psid,5000).then( __ =>{
