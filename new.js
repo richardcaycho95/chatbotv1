@@ -180,6 +180,14 @@ async function handleMessage(sender_psid,received_message){
     } else if (received_message.text) { //si no hay QR
         let data = await getPrePedidoByPsid(sender_psid)
         console.log(data)
+        if(data.pedido_asignado){ //si hay pedidos confirmados
+            if(data.multiple_pedido){ //si se aceptó tener multiples pedidos
+                data = data.pre_pedido
+            } else{
+                sendAskMultiplePedido(sender_psid)
+                return false
+            }
+        }
         if (data=='' || data===undefined) { //si no hay prepedido
             sendSaludo(sender_psid).then(_ =>{
                 callSendAPI(sender_psid,getBloqueInicial()) //creando bloque inicial
