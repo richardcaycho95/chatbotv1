@@ -48,7 +48,7 @@ setInterval(() => {
 //CONNECTION POSTGRESQL
 const client = new Client({
     connectionString:process.env.DATABASE_URL,
-    ssl:true
+    ssl: {rejectUnauthorized: false }
 })
 client.connect(err =>{
     if(err) console.error('connection error',err.stack)
@@ -167,7 +167,6 @@ app.get('/add_location_postback',(req,res)=>{
     }
 });
 app.get('/save_pedido',(req,res)=>{
-    console.log('in save_pedido')
     console.log(req.query)
     res.json({id_pedido:'123'})
     
