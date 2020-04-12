@@ -16,12 +16,12 @@ const Base = require('./assets/basic_functions.js')
 const BaseJson = require('./assets/basic_json_functions')
 const BasePayload = require('./assets/basic_payload_functions')
 
-const app = express()
-    .use(bodyParser.json())
-    .use(express.static(`${__dirname}/assets/img`))// mostrar imagenes de assets
-    .listen(process.env.PORT,()=>{
-        console.log(`servidor webhook y socket.io iniciado en el puerto ${process.env.PORT}`)
-    })
+const app = express().use(bodyParser.json())
+
+app.use(express.static(`${__dirname}/assets/img`))// mostrar imagenes de assets
+app.listen(process.env.PORT,()=>{
+    console.log(`servidor webhook y socket.io iniciado en el puerto ${process.env.PORT}`)
+})
 
 //lanzamos el webhook
 // app.listen(process.env.PORT || 5000,()=>{
