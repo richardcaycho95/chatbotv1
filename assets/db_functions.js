@@ -10,7 +10,7 @@ module.exports = {
         for (let i = 1; i <= columns.length; i++) {
             keys.push(`$${i}`)
         }
-        let text = `INSERT INTO public.${table} ${columns} VALUES (${keys.toString()}) RETURNING *`
+        let text = `INSERT INTO public.${table} (${columns}) VALUES (${keys.toString()}) RETURNING *`
         return new Promise((resolve,reject)=>{
             client.query(text,Object.values(insert_object))
             .then(res => {
