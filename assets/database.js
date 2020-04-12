@@ -10,6 +10,10 @@ class PgDatabase{
             else console.log('pg connected')
         })
         this.schema = schema
+        this.tables ={
+            usuario:'usuario',
+            pedido:'pedido'
+        }
     }
     insert(table,insert_object){
         let columns = Object.keys(insert_object)
@@ -27,8 +31,22 @@ class PgDatabase{
             })
         })
     }
-    select(table){
-        let text = `SELECT * FROM ${this.schema}.${table}`
+    insertPedido(insert_object){
+        //se comprueba si el usuario está registrado para insertar o actualizar y obtener su id(este se registrará en la tabla pedido)
+        let usuario = await this.select(this.tables.usuario,[{column:'psid',value:insert_object.psid}])
+        console.log(usuario)
+        return new Promise((resolve,reject)=>{
+            this.insert(this.tables.pedido,insert_object).then(response =>{
+                resolve(response)
+            })
+        })
+    }
+    select(table,where=[]){
+        let str_where = (where.length!=0)?'WHERE':''
+        where.forEach((element,i) =>{
+            str_where+=`${element.column}='${element.value}' ${(i==(where.length-1))?'':'AND'} `
+        })
+        let text = `SELECT * FROM ${this.schema}.${table} ${str_where}`
         return new Promise((resolve,reject)=>{
             this.client.query(text)
             .then(response =>{

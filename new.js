@@ -167,7 +167,8 @@ app.post('/save_pedido',(req,res)=>{
         telefono:data.telefono.numero,
         horario_envio:data.horario_envio
     }
-    Pg.insert('pedido',insert_pg)
+    //Pg.insert('pedido',insert_pg)
+    Pg.insertPedido(insert_pg)
     .then(response =>{
         res.json(response)
     })
