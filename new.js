@@ -169,7 +169,7 @@ app.get('/add_location_postback',(req,res)=>{
 });
 app.post('/save_pedido',(req,res)=>{
     console.log(req)
-    let data = JSON.parse(req.body)
+    let data = req.body
     let created_at = Base.getDate()
     let total = data.total.substr(3,(data.total.length-4))
     let insert_pg = {
@@ -274,7 +274,7 @@ async function handlePostback(psid,received_postback){
     let temp_data = (response.length>1)?response[1]:''
 
     if(response[0]=='CONFIRM_MULTIPLE_PEDIDO'){ //si el usuario confirma que desea pedir nuevamente
-        confirmMultiplePedido(psid)
+        await confirmMultiplePedido(psid)
     } else if(response[0]=='DENEGAR_MULTIPLE_PEDIDO'){ //si el usuario no desea agregar pedidos
         callSendAPI(psid,{text:`${Base.NOMBRE_BOT} 🤖 está listo para atenderte cuando lo desees 😀`})
     }
