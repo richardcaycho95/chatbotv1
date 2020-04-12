@@ -167,6 +167,7 @@ app.get('/add_location_postback',(req,res)=>{
     }
 });
 app.post('/save_pedido',(req,res)=>{
+    console.log('in save_pedido')
     console.log(req.query)
     res.json({id_pedido:'123'})
     
