@@ -3,6 +3,7 @@ const bodyParser = require('body-parser')
 const request = require('request')
 const http = require('http')
 const socketIO = require('socket.io')
+const { Client } = require('pg')
 
 const admin=require('firebase-admin')
 
@@ -44,6 +45,15 @@ setInterval(() => {
     io.emit('orders/ADD_ORDERS',new Date().toTimeString())
 },2000)
 
+//CONNECTION POSTGRESQL
+const client = new Client({
+    connectionString:process.env.DATABASE_URL,
+    ssl:true
+})
+client.connect(err =>{
+    if(err) console.error('connection error',err.stack)
+    else console.log('pg connected')
+})
 /******************************************************/
 /********************ROUTES****************************/
 /******************************************************/
@@ -157,8 +167,9 @@ app.get('/add_location_postback',(req,res)=>{
     }
 });
 app.post('/save_pedido',(req,res)=>{
-    //let body = JSON.parse(req.query)
+    console.log(req.query)
     res.json({id_pedido:'123'})
+    
 })
 /**************************************************************/
 /********FUNCIONES BASICAS PARA COMUNICAR CON EL BOT***********/
