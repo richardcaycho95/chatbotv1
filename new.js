@@ -3,10 +3,12 @@ const bodyParser = require('body-parser')
 const request = require('request')
 const http = require('http')
 const socketIO = require('socket.io')
-const { Client } = require('pg')
-
+//const { Client } = require('pg')
+//instanciamos la clase PgDatabase para conectar con la base de datos
+const PgDatabase = require('./assets/database')
+const Pg = new PgDatabase()
+//llamamos a la libreria para conectar y autenticar a firebase
 const admin=require('firebase-admin')
-
 admin.initializeApp({
     credential: admin.credential.cert(__dirname+'/assets/chatbot-key.json'),
     databaseURL: "https://chatbot-delivery.firebaseio.com",
@@ -16,20 +18,12 @@ const db=admin.database()
 const Base = require('./assets/basic_functions.js')
 const BaseJson = require('./assets/basic_json_functions')
 const BasePayload = require('./assets/basic_payload_functions')
-const Pg = require('./assets/db_functions')
 
 const app = express().use(bodyParser.json())
-
 app.use(express.static(`${__dirname}/assets/img`))// mostrar imagenes de assets
-app.listen(process.env.PORT,()=>{
+app.listen(process.env.PORT,()=>{ //lanzamos el webhook
     console.log(`servidor webhook y socket.io iniciado en el puerto ${process.env.PORT}`)
 })
-
-//lanzamos el webhook
-// app.listen(process.env.PORT || 5000,()=>{
-//     console.log(`servidor webhook iniciado en el puerto ${process.env.PORT} ...`);
-// })
-
 //socket IO
 const serverIO = http.createServer(app)
 // const io = socketIO.listen(server)
@@ -45,16 +39,6 @@ io.on('connection',(socket)=>{
 setInterval(() => {
     io.emit('orders/ADD_ORDERS',new Date().toTimeString())
 },2000)
-
-//CONNECTION POSTGRESQL
-const client = new Client({
-    connectionString:process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-})
-client.connect(err =>{
-    if(err) console.error('connection error',err.stack)
-    else console.log('pg connected')
-})
 /******************************************************/
 /********************ROUTES****************************/
 /******************************************************/
@@ -169,7 +153,6 @@ app.get('/add_location_postback',(req,res)=>{
 });
 app.post('/save_pedido',(req,res)=>{
     let data = req.body
-    console.log(`psid en save_pedido: ${data.psid}`)
     let created_at = Base.getDate()
     let total = data.total.substr(3,(data.total.length-4))
     let insert_pg = {
@@ -184,16 +167,30 @@ app.post('/save_pedido',(req,res)=>{
         telefono:data.telefono.numero,
         horario_envio:data.horario_envio
     }
-    Pg.INSERT(client,'pedido',insert_pg)
-    .then(id =>{
-        console.log(id)
-        res.json({id_pedido:id})
-    })    
+    Pg.insert('pedido',insert_pg)
+    .then(response =>{
+        res.json(response)
+    })
+})
+/**************************************************************/
+/**********************API REST********************************/
+/**************************************************************/
+app.get('/pedidos',(req,res)=>{
+    Pg.select('pedido')
+    .then(response =>{
+        console.log(response)
+        res.json(response)
+    })
 })
 /**************************************************************/
 /********FUNCIONES BASICAS PARA COMUNICAR CON EL BOT***********/
 /**************************************************************/
-//handle quick replies
+
+/**
+ * handle quick replies
+ * @param {*} psid id del usuario
+ * @param {*} message objeto mensaje que contiene el payload y el texto
+ */
 async function handleQuickReply(psid,message){
     const payload = message.quick_reply.payload
     let pre_pedido = await getPrePedidoByPsid(psid)
@@ -716,7 +713,8 @@ async function savePedido(psid,data_encoded){
             'json': data_decoded
         },(err,res,body)=>{
             if (!err) {
-                deletePrePedido(psid,true).then(_ =>{
+                deletePrePedido(psid,true)
+                .then(_ =>{
                     db.ref(`usuarios/${data_decoded.usuario_key}/pedidos`).push({id:body.id_pedido})
                     resolve(body.id_pedido)
                 })
