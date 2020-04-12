@@ -166,7 +166,7 @@ app.get('/add_location_postback',(req,res)=>{
         console.log('psid no definido en add_location_postback')
     }
 });
-app.post('/save_pedido',(req,res)=>{
+app.get('/save_pedido',(req,res)=>{
     console.log('in save_pedido')
     console.log(req.query)
     res.json({id_pedido:'123'})
@@ -693,8 +693,8 @@ async function savePedido(psid,data_encoded){
     return new Promise((resolve,reject)=>{
         request({
             'uri': `${Base.WEBHOOK_URL}/save_pedido`,
-            'qs':{ 'access_token': Base.WEB_ACCESS_TOKEN },
-            'method': 'POST',
+            // 'qs':{ 'access_token': Base.WEB_ACCESS_TOKEN },
+            'method': 'GET',
             'json': data_decoded
         },(err,res,body)=>{
             if (!err) {
