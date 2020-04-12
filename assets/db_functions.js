@@ -11,11 +11,16 @@ module.exports = {
             keys.push(`$${i}`)
         }
         let text = `INSERT INTO public.${table} ${columns} VALUES (${keys.toString()}) RETURNING *`
-        client.query(text,Object.values(insert_object))
-        .then(res => {
-            console.log(res)
-            return res.rows[0]
+        return new Promise((resolve,reject)=>{
+            client.query(text,Object.values(insert_object))
+            .then(res => {
+                console.log(res)
+                resolve(res.rows[0])
+            })
+            .catch(err => {
+                console.error(err.stack)
+                reject(err)
+            })
         })
-        .catch(err => console.error(err.stack))
     }
 }

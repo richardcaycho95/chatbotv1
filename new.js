@@ -168,8 +168,8 @@ app.get('/add_location_postback',(req,res)=>{
     }
 });
 app.post('/save_pedido',(req,res)=>{
-    console.log(req)
     let data = req.body
+    console.log(`psid en save_pedido: ${data.psid}`)
     let created_at = Base.getDate()
     let total = data.total.substr(3,(data.total.length-4))
     let insert_pg = {
@@ -184,10 +184,11 @@ app.post('/save_pedido',(req,res)=>{
         telefono:data.telefono.numero,
         horario_envio:data.horario_envio
     }
-    let id = Pg.INSERT(client,'pedido',insert_pg)
-
-    res.json({id_pedido:id})
-    
+    Pg.INSERT(client,'pedido',insert_pg)
+    .then(idp =>{
+        console.log(idp)
+        res.json({id_pedido:idp})
+    })    
 })
 /**************************************************************/
 /********FUNCIONES BASICAS PARA COMUNICAR CON EL BOT***********/
