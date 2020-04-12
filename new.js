@@ -29,11 +29,11 @@ app.listen(process.env.PORT,()=>{
 // })
 
 //socket IO
-// const server = http.createServer(app)
+const serverIO = http.createServer(app)
 // const io = socketIO.listen(server)
 
-//lanzamos webhook y socket.io
-const io = socketIO(app)
+//lanzamos socket.io
+const io = socketIO(serverIO)
 
 io.on('connection',(socket)=>{
     console.log('socket connected')
