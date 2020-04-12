@@ -161,6 +161,7 @@ app.post('/save_pedido',(req,res)=>{
 
     delete data.pedido
     delete data.telefono
+    delete data.flujo
     // let insert_pg = {
     //     psid:data.psid,
     //     menu:JSON.stringify(data.pedido),
