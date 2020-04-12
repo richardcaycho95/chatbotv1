@@ -47,7 +47,7 @@ class PgDatabase{
         }
         console.log('aqui viene el usuario')
         console.log(usuario)
-        insert_object.id_usuario = usuario.id_usuario
+        insert_object.id_usuario = usuario[0].id_usuario
         delete insert_object.psid //se elimina porque no se va a registrar
         console.log(insert_object)
 
