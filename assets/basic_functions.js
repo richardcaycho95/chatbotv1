@@ -1,3 +1,4 @@
+const request = require('request')
 var self = module.exports = {
   /**
    * devuelve la información que tiene snapshot en formato json y se agrega el atributo key
@@ -75,7 +76,7 @@ var self = module.exports = {
    * retorna la información publica del usuario que se tiene en facebook (first_name,last_name,etc) en formato json
    * @param {*} psid id del usuario
    */
-  getProfileFromFacebook:async function(psid){
+  getProfileFromFacebook:function(psid){
     return new Promise((resolve,reject)=>{
         request({
             'uri':`https://graph.facebook.com/${psid}?fields=first_name,last_name,profile_pic&access_token=${self.PAGE_ACCESS_TOKEN}`,
