@@ -49,6 +49,7 @@ class PgDatabase{
         console.log(usuario)
         insert_object.id_usuario = usuario.id_usuario
         delete insert_object.psid //se elimina porque no se va a registrar
+        console.log(insert_object)
 
         return new Promise((resolve,reject)=>{
             let response = this.insert(this.tables.pedido,insert_object)
