@@ -15,7 +15,7 @@ module.exports = {
         return new Promise((resolve,reject)=>{
             client.query(text,Object.values(insert_object))
             .then(res => {
-                console.log(res[0]['id_pedido'])
+                console.log(res[0])
                 resolve(res.rows[0].id_pedido)
             })
             .catch(err => {
