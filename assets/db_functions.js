@@ -6,11 +6,12 @@ module.exports = {
      */
     INSERT:function (client,table,insert_object) {
         let keys=[]
-        let columns = Object.keys(insert_object).toString()
+        let columns = Object.keys(insert_object)
         for (let i = 1; i <= columns.length; i++) {
             keys.push(`$${i}`)
         }
-        let text = `INSERT INTO public.${table} (${columns}) VALUES (${keys.toString()}) RETURNING *`
+        console.log(keys.toString())
+        let text = `INSERT INTO public.${table} (${columns.toString()}) VALUES (${keys.toString()}) RETURNING *`
         return new Promise((resolve,reject)=>{
             client.query(text,Object.values(insert_object))
             .then(res => {
