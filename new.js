@@ -16,6 +16,7 @@ const db=admin.database()
 const Base = require('./assets/basic_functions.js')
 const BaseJson = require('./assets/basic_json_functions')
 const BasePayload = require('./assets/basic_payload_functions')
+const Pg = require('./assets/db_functions')
 
 const app = express().use(bodyParser.json())
 
@@ -167,10 +168,25 @@ app.get('/add_location_postback',(req,res)=>{
     }
 });
 app.post('/save_pedido',(req,res)=>{
-    console.log(req)
-    // let query = 'INSERT INTO pedido VALUES ()'
-    // client.query(query)
-    res.json({id_pedido:'123'})
+    console.log(JSON.stringify(req))
+    let data = req.body
+    let created_at = Base.getDate()
+    let total = data.total.substr(3,(data.total.length-4))
+    let insert_pg = {
+        psid:data.psid,
+        menu:JSON.stringify(data.pedido),
+        complementos:JSON.stringify(data.complementos),
+        comentario:data.comentario,
+        ubicacion:JSON.stringify(data.ubicacion),
+        total:total,
+        created_at:created_at,
+        usuario_key:data.usuario_key,
+        telefono:data.telefono.numero,
+        horario_envio:data.horario_envio
+    }
+    let id = Pg.INSERT(client,'pedido',insert_pg)
+
+    res.json({id_pedido:id})
     
 })
 /**************************************************************/
