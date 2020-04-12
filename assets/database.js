@@ -1,4 +1,5 @@
 const { Client } = require('pg')
+const Base = require('./basic_functions')
 class PgDatabase{
     constructor(schema='public'){
         this.client = new Client({
@@ -15,7 +16,7 @@ class PgDatabase{
             pedido:'pedido'
         }
     }
-    insert(table,insert_object){
+    async insert(table,insert_object){
         let columns = Object.keys(insert_object)
         let keys=[]
         for (let i = 1; i <= columns.length; i++) { keys.push(`$${i}`) }
@@ -32,16 +33,29 @@ class PgDatabase{
         })
     }
     async insertPedido(insert_object){
-        //se comprueba si el usuario está registrado para insertar o actualizar y obtener su id(este se registrará en la tabla pedido)
+        //se comprueba si el usuario está registrado para insertar y obtener su id(este se registrará en la tabla pedido)
         let usuario = await this.select(this.tables.usuario,[{column:'psid',value:insert_object.psid}])
+        if(usuario.length==0){ //si el usuario no existe, se crea
+            let profile = await Base.getProfileFromFacebook(insert_object.psid)
+            let new_usuario = {
+                psid:insert_object.psid,
+                nombres_apellidos:`${profile.first_name} ${profile.last_name}`,
+                created_at:Base.getDate(),
+                _key:insert_object.usuario_key
+            }
+            usuario = await this.insert(this.tables.usuario,new_usuario)
+        }
+        console.log('aqui viene el usuario')
         console.log(usuario)
+        insert_object.id_usuario = usuario.id_usuario
+        delete insert_object.psid //se elimina porque no se va a registrar
+
         return new Promise((resolve,reject)=>{
-            this.insert(this.tables.pedido,insert_object).then(response =>{
-                resolve(response)
-            })
+            let response = this.insert(this.tables.pedido,insert_object)
+            resolve(response)
         })
     }
-    select(table,where=[]){
+    async select(table,where=[]){
         let str_where = (where.length!=0)?'WHERE ':''
         where.forEach((element,i) =>{
             str_where+=`${element.column}='${element.value}' ${(i==(where.length-1))?'':'AND'} `

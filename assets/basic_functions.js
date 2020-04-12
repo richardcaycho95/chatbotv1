@@ -71,6 +71,25 @@ var self = module.exports = {
     })
     return hours_qr
   },
+  /**
+   * retorna la información publica del usuario que se tiene en facebook (first_name,last_name,etc) en formato json
+   * @param {*} psid id del usuario
+   */
+  getProfileFromFacebook:async function(psid){
+    return new Promise((resolve,reject)=>{
+        request({
+            'uri':`https://graph.facebook.com/${psid}?fields=first_name,last_name,profile_pic&access_token=${self.PAGE_ACCESS_TOKEN}`,
+            'method': 'GET'
+        },(err,res,body)=>{
+            if (!err) {
+                resolve(JSON.parse(body))
+            } else{
+                console.error('No se puede responder')
+                reject(err)
+            }
+        })
+    })
+  },
   GMAP_API_KEY: 'AIzaSyDxIn9qXbWD1lvSzHCiphSNw7_jiPK6obw',
   WEBHOOK_URL: 'https://vizarro.herokuapp.com',
   FALLBACK_URL: 'https://restaurante-saborperuano.netlify.com/fallback',

@@ -3,7 +3,6 @@ const bodyParser = require('body-parser')
 const request = require('request')
 const http = require('http')
 const socketIO = require('socket.io')
-//const { Client } = require('pg')
 //instanciamos la clase PgDatabase para conectar con la base de datos
 const PgDatabase = require('./assets/database')
 const Pg = new PgDatabase()
@@ -153,22 +152,29 @@ app.get('/add_location_postback',(req,res)=>{
 });
 app.post('/save_pedido',(req,res)=>{
     let data = req.body
-    let created_at = Base.getDate()
-    let total = data.total.substr(3,(data.total.length-4))
-    let insert_pg = {
-        psid:data.psid,
-        menu:JSON.stringify(data.pedido),
-        complementos:JSON.stringify(data.complementos),
-        comentario:data.comentario,
-        ubicacion:JSON.stringify(data.ubicacion),
-        total:total,
-        created_at:created_at,
-        usuario_key:data.usuario_key,
-        telefono:data.telefono.numero,
-        horario_envio:data.horario_envio
-    }
+    data.created_at = Base.getDate()
+    data.total = data.total.substr(3,(data.total.length-4))
+    data.menu = JSON.stringify(data.pedido)
+    data.complementos = JSON.stringify(data.complementos)
+    data.ubicacion = JSON.stringify(data.ubicacion)
+    data.telefono = data.telefono.numero
+
+    delete data.pedido
+    delete data.telefono
+    // let insert_pg = {
+    //     psid:data.psid,
+    //     menu:JSON.stringify(data.pedido),
+    //     complementos:JSON.stringify(data.complementos),
+    //     comentario:data.comentario,
+    //     ubicacion:JSON.stringify(data.ubicacion),
+    //     total:total,
+    //     created_at:created_at,
+    //     usuario_key:data.usuario_key,
+    //     telefono:data.telefono.numero,
+    //     horario_envio:data.horario_envio
+    // }
     //Pg.insert('pedido',insert_pg)
-    Pg.insertPedido(insert_pg)
+    Pg.insertPedido(data)
     .then(response =>{
         res.json(response)
     })
@@ -455,7 +461,7 @@ async function typing(psid,time){
  */
 async function sendSaludo(psid){
     return new Promise((resolve,reject) =>{
-        getProfileFromFacebook(psid).then(response =>{
+        Base.getProfileFromFacebook(psid).then(response =>{
             callSendAPI(psid,{text:`Hola ${response.first_name} 😊\nDesliza para que veas nuestras opciones 👇👇👇`})
         })
         resolve()
@@ -499,25 +505,6 @@ async function sendAskMultiplePedido(psid){
         ]
     }
     callSendAPI(psid,BaseJson.getTemplateButton(data))
-}
-/**
- * retorna la información publica del usuario que se tiene en facebook (first_name,last_name,etc) en formato json
- * @param {*} psid id del usuario
- */
-async function getProfileFromFacebook(psid){
-    return new Promise((resolve,reject)=>{
-        request({
-            'uri':`https://graph.facebook.com/${psid}?fields=first_name,last_name,profile_pic&access_token=${Base.PAGE_ACCESS_TOKEN}`,
-            'method': 'GET'
-        },(err,res,body)=>{
-            if (!err) {
-                resolve(JSON.parse(body))
-            } else{
-                console.error('No se puede responder')
-                reject(err)
-            }
-        })
-    })
 }
 /**
  * envia la data del body que se obtiene en la ruta 'pedidopostback', se guarda el pre_pedido
@@ -922,7 +909,7 @@ async function templateDirecciones(psid){
  * @param {Number} psid id del usuario
  */
 async function templateGetStarted(psid){
-    let response = await getProfileFromFacebook(psid)
+    let response = await Base.getProfileFromFacebook(psid)
     await callSendAPI(psid,{text:`Hola ${response.first_name}, te presentamos a ${Base.NOMBRE_BOT}, nuestro asistente virtual 🤖, que es parte de una nueva experiencia de delivery que el *${Base.NOMBRE_EMPRESA}* pone a tu disposición 🤗. \n\nEn unos simples pasos podrás realizar tu pedido desde la comodidad de tu hogar o desde donde te encuentres, ${Base.NOMBRE_BOT} te hará unas sencillas preguntas para concretar tu pedido.\n\nA continuación te enseñamos como funciona ${Base.NOMBRE_BOT} 🤖`})
 
     typing(psid,4000).then(_ =>{
