@@ -168,8 +168,8 @@ app.get('/add_location_postback',(req,res)=>{
     }
 });
 app.post('/save_pedido',(req,res)=>{
-    console.log(JSON.stringify(req))
-    let data = req.body
+    console.log(req)
+    let data = JSON.parse(req.body)
     let created_at = Base.getDate()
     let total = data.total.substr(3,(data.total.length-4))
     let insert_pg = {
