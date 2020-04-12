@@ -185,9 +185,9 @@ app.post('/save_pedido',(req,res)=>{
         horario_envio:data.horario_envio
     }
     Pg.INSERT(client,'pedido',insert_pg)
-    .then(idp =>{
-        console.log(idp)
-        res.json({id_pedido:idp})
+    .then(id =>{
+        console.log(id)
+        res.json({id_pedido:id})
     })    
 })
 /**************************************************************/
