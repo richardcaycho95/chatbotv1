@@ -10,9 +10,10 @@ module.exports = {
         for (let i = 1; i <= columns.length; i++) {
             keys.push(`$${i}`)
         }
-        let text = `INSERT INTO ${table} ${columns} VALUES (${keys.toString()}) RETURNING *`
+        let text = `INSERT INTO public.${table} ${columns} VALUES (${keys.toString()}) RETURNING *`
         client.query(text,Object.values(insert_object))
         .then(res => {
+            console.log(res)
             return res.rows[0]
         })
         .catch(err => console.error(err.stack))
