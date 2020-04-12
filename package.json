@@ -14,7 +14,8 @@
     "express": "^4.16.2",
     "firebase-admin": "^8.10.0",
     "request": "^2.83.0",
-    "request-promise": "^4.2.5"
+    "request-promise": "^4.2.5",
+    "socket.io": "^2.3.0"
   },
   "repository": {
     "type": "git",

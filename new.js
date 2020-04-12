@@ -1,9 +1,10 @@
-const express= require('express');
-const bodyParser = require('body-parser');
-const request = require('request');
-const path = require('path');
+const express= require('express')
+const bodyParser = require('body-parser')
+const request = require('request')
+const http = require('http')
+const socketIO = require('socket.io')
 
-const admin=require('firebase-admin');
+const admin=require('firebase-admin')
 
 admin.initializeApp({
     credential: admin.credential.cert(__dirname+'/assets/chatbot-key.json'),
@@ -15,14 +16,33 @@ const Base = require('./assets/basic_functions.js')
 const BaseJson = require('./assets/basic_json_functions')
 const BasePayload = require('./assets/basic_payload_functions')
 
-const app = express().use(bodyParser.json());
-
-app.use(express.static(`${__dirname}/assets/img`));// mostrar imagenes de assets
+const app = express()
+    .use(bodyParser.json())
+    .use(express.static(`${__dirname}/assets/img`))// mostrar imagenes de assets
+    .listen(process.env.PORT,()=>{
+        console.log(`servidor webhook y socket.io iniciado en el puerto ${process.env.PORT}`)
+    })
 
 //lanzamos el webhook
-app.listen(process.env.PORT || 5000,()=>{
-    console.log(`servidor webhook iniciado en el puerto ${process.env.PORT} ...`);
+// app.listen(process.env.PORT || 5000,()=>{
+//     console.log(`servidor webhook iniciado en el puerto ${process.env.PORT} ...`);
+// })
+
+//socket IO
+// const server = http.createServer(app)
+// const io = socketIO.listen(server)
+
+//lanzamos webhook y socket.io
+const io = socketIO(app)
+
+io.on('connection',(socket)=>{
+    console.log('socket connected')
+    socket.on('disconnect',()=> console.log('socket disconnected'))
 })
+
+setInterval(() => {
+    io.emit('orders/ADD_ORDERS',new Date().toTimeString())
+},2000)
 
 /******************************************************/
 /********************ROUTES****************************/
@@ -41,13 +61,13 @@ app.post('/webhook',(req,res)=>{
             const webhookEvent = entry.messaging[0];
             console.log(webhookEvent);
 
-            const sender_psid = webhookEvent.sender.id; //id de quien envia el mensaje
-            console.log(`sender PSID: ${sender_psid}`);
+            const psid = webhookEvent.sender.id; //id de quien envia el mensaje
+            console.log(`sender PSID: ${psid}`);
             //validamos si recibimos mensajes
             if (webhookEvent.message) {
-                handleMessage(sender_psid,webhookEvent.message);
+                handleMessage(psid,webhookEvent.message);
             } else if(webhookEvent.postback) {
-                handlePostback(sender_psid,webhookEvent.postback);
+                handlePostback(psid,webhookEvent.postback);
             }
         });
         res.status(200).send('MENSAJE RECIBIDO DESDE FACEBOOK');
@@ -144,9 +164,9 @@ app.post('/save_pedido',(req,res)=>{
 /********FUNCIONES BASICAS PARA COMUNICAR CON EL BOT***********/
 /**************************************************************/
 //handle quick replies
-async function handleQuickReply(sender_psid,message){
+async function handleQuickReply(psid,message){
     const payload = message.quick_reply.payload
-    let pre_pedido = await getPrePedidoByPsid(sender_psid)
+    let pre_pedido = await getPrePedidoByPsid(psid)
     let response = payload.split('--')
     let phone = {initial: payload.substr(0,3), size: payload.length }
 
@@ -154,82 +174,88 @@ async function handleQuickReply(sender_psid,message){
         if(pre_pedido.multiple_pedido==true){ //si se aceptó tener multiples pedidos
             pre_pedido = pre_pedido.pre_pedido
         } else{
-            sendAskMultiplePedido(sender_psid)
+            sendAskMultiplePedido(psid)
             return false
         }
     }
 
     if (phone.initial =='+51' && phone.size == 12) { //si el texto tiene indicios de ser el celular
         if (pre_pedido!='') { //si la data aun no se ha eliminado
-            savePhoneNumber(sender_psid,payload,pre_pedido).then(response => {
-                pedirTelefono(sender_psid,response)
+            savePhoneNumber(psid,payload,pre_pedido).then(response => {
+                pedirTelefono(psid,response)
             })
         }
     }
     //cuando el usuario elige una sugerencia de horario de envio
     if(response[0]=='HORA_ENVIO'){
         if (pre_pedido!='') { //si la data aun no se ha eliminado
-            saveHorarioEnvio(sender_psid,response[1],pre_pedido).then(response => {
-                sendDetailPrePedido(sender_psid,response)
+            saveHorarioEnvio(psid,response[1],pre_pedido).then(response => {
+                sendDetailPrePedido(psid,response)
             })
         }
     }
 }
 /**
  * handles message events
- * @param {Number} sender_psid id del usuario 
+ * @param {Number} psid id del usuario 
  * @param {*} received_message body.entry[n].messaging[n].message
  */
-async function handleMessage(sender_psid,received_message){
-    let usuario = await getUsuarioByPsid(sender_psid)
-    if(!usuario.existe){ await saveUser(sender_psid,'','')}
+async function handleMessage(psid,received_message){
+    let usuario = await getUsuarioByPsid(psid)
+    if(!usuario.existe){ await saveUser(psid,'','')}
 
     if(received_message.quick_reply){ //si el mensaje posee un QR
-        handleQuickReply(sender_psid,received_message)
+        handleQuickReply(psid,received_message)
     } else if (received_message.text) { //si no hay QR
-        let data = await getPrePedidoByPsid(sender_psid)
+        let data = await getPrePedidoByPsid(psid)
         console.log(data)
         if(data.pedido_asignado){ //si hay pedidos confirmados
             if(data.multiple_pedido==true){ //si se aceptó tener multiples pedidos
                 data = data.pre_pedido
             } else{
-                sendAskMultiplePedido(sender_psid)
+                sendAskMultiplePedido(psid)
                 return false
             }
         }
         if (data=='' || data===undefined) { //si no hay prepedido
-            sendSaludo(sender_psid).then(_ =>{
-                callSendAPI(sender_psid,getBloqueInicial()) //creando bloque inicial
+            sendSaludo(psid).then(_ =>{
+                callSendAPI(psid,getBloqueInicial()) //creando bloque inicial
             })
         } else{ //si el usuario tiene un pre pedido pendiente
             let data_decoded = Base.decodeData(data)
             if(data_decoded.flujo==Base.FLUJO.PEDIR_HORARIO_ENVIO){ //el flujo está pidiendo el horario de envio y el usuario lo ha escrito
-                saveHorarioEnvio(sender_psid,received_message.text,data).then(response =>{
-                    sendDetailPrePedido(sender_psid,response)
+                saveHorarioEnvio(psid,received_message.text,data).then(response =>{
+                    sendDetailPrePedido(psid,response)
                 })
             } else{
-                managePrePedido(sender_psid,data)
+                managePrePedido(psid,data)
             }
         }
     }
 }
-//handles messaging_postback events
-async function handlePostback(sender_psid,received_postback){
+/**
+ * captura y gestiona los eventos postbacks que se recibe
+ * @param {*} psid id del usuario
+ * @param {*} received_postback objeto recibido
+ */
+async function handlePostback(psid,received_postback){
     const payload=received_postback.payload;
 
     let response = payload.split('--')
     let temp_data = (response.length>1)?response[1]:''
 
     if(response[0]=='CONFIRM_MULTIPLE_PEDIDO'){ //si el usuario confirma que desea pedir nuevamente
-        confirmMultiplePedido(sender_psid)
+        confirmMultiplePedido(psid)
+    } else if(response[0]=='DENEGAR_MULTIPLE_PEDIDO'){ //si el usuario no desea agregar pedidos
+        callSendAPI(psid,{text:`${Base.NOMBRE_BOT} 🤖 está listo para atenderte cuando lo desees 😀`})
     }
-    let pre_pedido = await getPrePedidoByPsid(sender_psid)
+    let pre_pedido = await getPrePedidoByPsid(psid)
 
     if(pre_pedido.pedido_asignado){ //si hay pedidos confirmados
         if(pre_pedido.multiple_pedido==true){ //si se aceptó tener multiples pedidos
             pre_pedido = pre_pedido.pre_pedido
         } else{
-            sendAskMultiplePedido(sender_psid)
+            sendAskMultiplePedido(psid)
             return false
         }
     }
@@ -238,12 +264,12 @@ async function handlePostback(sender_psid,received_postback){
     //parametros del payload
     switch (response[0]) {
         case 'home':
-            callSendAPI(sender_psid,getBloqueInicial())
+            callSendAPI(psid,getBloqueInicial())
             break;
         case 'MENU_DIA':
             //mensaje donde se detalla el menú del dia y se pregunta sobre la acción a realizar
             //se debe recorrer el bucle para leer los formatos json
-            callSendAPI(sender_psid,BasePayload.getMenuDia())
+            callSendAPI(psid,BasePayload.getMenuDia())
             break;
         case 'complementos':
             //mensaje donde se muestra las gaseosas y se llama a la accción
@@ -265,67 +291,67 @@ async function handlePostback(sender_psid,received_postback){
             break;
         case 'RP_DIRECCIONES': //cuando el usuario selecciona el botón "REALIZAR PEDIDO"
             if (pre_pedido!='') { //si hay un pre_pedido
-                managePrePedido(sender_psid,pre_pedido)
+                managePrePedido(psid,pre_pedido)
             } else{ //si no hay pre_pedido
-                templateDirecciones(sender_psid)
+                templateDirecciones(psid)
             }
             break;
         case 'RP_CAMBIAR_DIRECCION': //cuando el usuario desea cambiar  su dirección
             if (pre_pedido!='') { //si hay un pre_pedido (ya hay una dirección almacenada)
-                deletePrePedido(sender_psid,true)
+                deletePrePedido(psid,true)
             }
-            templateDirecciones(sender_psid)
+            templateDirecciones(psid)
             break;
         case 'RP_DIR_SELECCIONADA': //cuando el usuario selecciona una dirección mostrada, aca recien se empezará a crear el pre_pedido
             if (pre_pedido!='') { //si hay un pre_pedido, mandar al flujo
-                managePrePedido(sender_psid,pre_pedido)
+                managePrePedido(psid,pre_pedido)
             } else{ //si no hay pre_pedido
-                direccionSeleccionada(sender_psid,response[1])//response[1]: objeto ubicacion codificado, este ha sido seleccionado por el usuario
+                direccionSeleccionada(psid,response[1])//response[1]: objeto ubicacion codificado, este ha sido seleccionado por el usuario
             }
             break;
         case 'RP_PEDIR_TELEFONO'://cuando el usuario confirma que su pedido es conforme y presiona "CONTINUAR"
             if (pre_pedido!='') {
-                pedirTelefono(sender_psid,pre_pedido) //la data viene codificada desde /pedidopostback (data) y este pasa por templateAfterPedido para al final llegar a esta
+                pedirTelefono(psid,pre_pedido) //la data viene codificada desde /pedidopostback (data) y este pasa por templateAfterPedido para al final llegar a esta
             } else{
-                managePrePedido(sender_psid,pre_pedido)
+                managePrePedido(psid,pre_pedido)
             }
             break;
         case 'RP_AGREGAR_TELEFONO':
-            telefonoQR(sender_psid,temp_data)
+            telefonoQR(psid,temp_data)
             break;
         case 'RP_TELEFONO_SELECCIONADO': //cuando se ha seleccionado un telefono, se procede a pedir el horario de envio 
             //el usuario selecciona un número de las cards que se muestra, cada card tiene codificada la data anterior y el numero respectivo, cuando se selecciona se trae en la segunda parte del payload, y luego se guarda en firebase
             if (pre_pedido!='') {
-                templatePedirHorarioEnvio(sender_psid,response[1])
+                templatePedirHorarioEnvio(psid,response[1])
             } else{
-                managePrePedido(sender_psid,pre_pedido)
+                managePrePedido(psid,pre_pedido)
             }
             break;
         case 'CONFIRMAR_PEDIDO':
             if(pre_pedido!=''){ //si hay pre_pedido
-                savePedido(sender_psid,pre_pedido).then(id_pedido =>{
-                    callSendAPI(sender_psid,{text:`Tu orden N° ${id_pedido} ha sido generada 😎👍.\nMuchas gracias por utilizar el servicio 😊.`})
+                savePedido(psid,pre_pedido).then(id_pedido =>{
+                    callSendAPI(psid,{text:`Tu orden N° ${id_pedido} ha sido generada 😎👍\n\nMuchas gracias por utilizar el servicio 😊`})
                 })
             } else{
-                managePrePedido(sender_psid,pre_pedido)
+                managePrePedido(psid,pre_pedido)
             }
             break;
         case 'CANCELAR_PREPEDIDO':
             if(pre_pedido!=''){ // si hay pre_pedido
-                deletePrePedido(sender_psid,true).then(_ =>{
-                    callSendAPI(sender_psid,{text:`${Base.NOMBRE_BOT} está listo para recibir tus ordenes, solo escibenos cuando desees 😊`})
+                deletePrePedido(psid,true).then(_ =>{
+                    callSendAPI(psid,{text:`${Base.NOMBRE_BOT} está listo para recibir tus ordenes, solo escibenos cuando desees 😊`})
                 })
             } else{ //si el pre_pedido ya ha sido eliminado y el usuario siue presionando el mismo botón
-                callSendAPI(sender_psid,{text:'Ya se eliminó tu pedido... No olvides que nuestro chatbot está listo para recibir tus ordenes 😊'})
+                callSendAPI(psid,{text:'Ya se eliminó tu pedido... No olvides que nuestro chatbot está listo para recibir tus ordenes 😊'})
             }
             break;
         case 'SEGUIR_PREPEDIDO':
-            callSendAPI(sender_psid,{text:'Continuemos 😎 ...'}).then( _ =>{
-                managePrePedido(sender_psid,pre_pedido)
+            callSendAPI(psid,{text:'Continuemos 😎 ...'}).then( _ =>{
+                managePrePedido(psid,pre_pedido)
             })
             break;
         case 'GET_STARTED':
-            templateGetStarted(sender_psid)
+            templateGetStarted(psid)
             break;
         default:
             break;
@@ -333,14 +359,14 @@ async function handlePostback(sender_psid,received_postback){
 }
 /**
  * envia mensajes de respuesta a facebook mediante la "send API" 
- * @param {Number} sender_psid id del usuario
+ * @param {Number} psid id del usuario
  * @param {JSON} response mensajes que se enviará, estructura json
  * @param {String} messaging_type tipo de mensaje
  */
-async function callSendAPI(sender_psid,response,messaging_type='RESPONSE'){
+async function callSendAPI(psid,response,messaging_type='RESPONSE'){
     console.log(`response en callSendAPI: ${JSON.stringify(response)}`)
     requestBody = {
-        'recipient':{ 'id': sender_psid },
+        'recipient':{ 'id': psid },
         'messaging_type': messaging_type,
         'message': response
     }
@@ -397,7 +423,7 @@ async function typing(psid,time){
 }
 /**
  * retorna una promesa con el objeto que tiene el saludo con el nombre
- * @param {Number} sender_psid id del usuario
+ * @param {Number} psid id del usuario
  */
 async function sendSaludo(psid){
     return new Promise((resolve,reject) =>{
@@ -438,7 +464,7 @@ async function sendDetailPrePedido(psid,data_encoded){
 async function sendAskMultiplePedido(psid){
     let id_pedido = '123'
     let data = {
-        text:`La orden N° ${id_pedido} está en proceso...\n¿Deseas agregar otro pedido?`,
+        text:`Tu orden N° ${id_pedido} está en proceso...\n¿Deseas agregar otro pedido?`,
         buttons:[
             BaseJson.getPostbackButton('SI','CONFIRM_MULTIPLE_PEDIDO'),
             BaseJson.getPostbackButton('NO','DENEGAR_MULTIPLE_PEDIDO')
