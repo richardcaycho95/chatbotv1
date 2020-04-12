@@ -42,7 +42,7 @@ class PgDatabase{
         })
     }
     select(table,where=[]){
-        let str_where = (where.length!=0)?'WHERE':''
+        let str_where = (where.length!=0)?'WHERE ':''
         where.forEach((element,i) =>{
             str_where+=`${element.column}='${element.value}' ${(i==(where.length-1))?'':'AND'} `
         })
