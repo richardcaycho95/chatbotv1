@@ -31,7 +31,7 @@ class PgDatabase{
             })
         })
     }
-    insertPedido(insert_object){
+    async insertPedido(insert_object){
         //se comprueba si el usuario está registrado para insertar o actualizar y obtener su id(este se registrará en la tabla pedido)
         let usuario = await this.select(this.tables.usuario,[{column:'psid',value:insert_object.psid}])
         console.log(usuario)
